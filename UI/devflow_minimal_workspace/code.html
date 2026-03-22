@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kinetic Vault | Developer Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#c0c1ff",
+              "error": "#ffb4ab",
+              "on-secondary-fixed-variant": "#3c475a",
+              "surface-container-high": "#222a3d",
+              "on-tertiary-fixed-variant": "#005236",
+              "primary-fixed": "#e1e0ff",
+              "on-error": "#690005",
+              "primary-container": "#4b4dd8",
+              "surface-bright": "#31394d",
+              "inverse-on-surface": "#283044",
+              "surface-tint": "#c0c1ff",
+              "secondary-fixed-dim": "#bcc7de",
+              "on-background": "#dae2fd",
+              "surface-container-lowest": "#060e20",
+              "outline": "#918fa1",
+              "inverse-surface": "#dae2fd",
+              "tertiary-fixed": "#6ffbbe",
+              "tertiary": "#4edea3",
+              "surface-container-highest": "#2d3449",
+              "secondary-container": "#3e495d",
+              "surface-dim": "#0b1326",
+              "surface-container-low": "#131b2e",
+              "tertiary-container": "#006e4b",
+              "on-secondary-fixed": "#111c2d",
+              "surface-container": "#171f33",
+              "on-primary": "#1000a9",
+              "on-tertiary-fixed": "#002113",
+              "on-tertiary-container": "#67f4b7",
+              "inverse-primary": "#494bd6",
+              "tertiary-fixed-dim": "#4edea3",
+              "surface": "#0b1326",
+              "secondary": "#bcc7de",
+              "on-error-container": "#ffdad6",
+              "error-container": "#93000a",
+              "primary-fixed-dim": "#c0c1ff",
+              "on-tertiary": "#003824",
+              "on-primary-fixed-variant": "#2f2ebe",
+              "on-primary-container": "#d9d8ff",
+              "on-surface": "#dae2fd",
+              "background": "#0b1326",
+              "secondary-fixed": "#d8e3fb",
+              "on-secondary-container": "#aeb9d0",
+              "outline-variant": "#464555",
+              "surface-variant": "#2d3449",
+              "on-secondary": "#263143",
+              "on-surface-variant": "#c7c4d8",
+              "on-primary-fixed": "#07006c"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-tertiary selection:text-on-tertiary">
+<!-- Top: Project Selector and Status -->
+<header class="fixed top-0 w-full z-50 bg-surface-container-low flex justify-between items-center px-12 h-14 border-b border-outline-variant/10">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 cursor-pointer group">
+<span class="text-primary font-headline font-bold tracking-tighter text-xl">Kinetic Vault</span>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">unfold_more</span>
+</div>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-label text-xs uppercase tracking-[0.1em] text-on-surface-variant">System Nominal</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="account_tree">account_tree</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="layers">layers</span>
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant/20 overflow-hidden">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="Developer profile avatar abstract representation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDStEfEbdPVgzC4eGLDmYCekJv2BJQRw5oymAvjLktmJ-HSjiib6pb9LmvzRlVJxx8sInbaZOiE1RhqxxL6TgC6RJUnZe2YHsYhSvvVCOA7VYuMNO4XobkX51r6YOJzzA5qo8-ole7EKdg74cfBlAWqr8kUqhZCVDF_OguP2RQpAokQC7wy-NJ60nSqE0gx_czUOhlRxm3jPxIaYrWG4GdxZnxiWV0ekIiMWwf-8oO35B96r9dq8qWakv3nshrWceuZqyHMRD-DthY"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-20 px-12 grid grid-cols-12 gap-8 min-h-screen content-start">
+<!-- Left Column: Tasks -->
+<aside class="col-span-3 space-y-10">
+<section>
+<div class="relative group">
+<input class="w-full bg-surface-container-lowest border-none border-b-2 border-outline-variant/30 focus:border-tertiary focus:ring-0 text-sm py-3 transition-all placeholder:text-on-surface-variant/40" placeholder="Add new task..." type="text"/>
+<span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-outline-variant opacity-0 group-focus-within:opacity-100 uppercase tracking-widest font-bold">Enter</span>
+</div>
+</section>
+<nav class="space-y-8 h-[calc(100vh-350px)] overflow-y-auto hide-scrollbar">
+<!-- Category: Doing -->
+<div class="space-y-4">
+<h3 class="font-headline text-[10px] uppercase tracking-[0.2em] text-tertiary font-bold px-2">Doing</h3>
+<div class="bg-surface-container-highest border-l-2 border-tertiary p-3 flex justify-between items-center group cursor-pointer">
+<span class="text-sm font-medium text-on-surface">Refactor Auth Middleware</span>
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="sync" style="font-variation-settings: 'FILL' 1;">sync</span>
+</div>
+</div>
+<!-- Category: Todo -->
+<div class="space-y-4">
+<h3 class="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/50 font-bold px-2">Todo</h3>
+<ul class="space-y-2">
+<li class="bg-surface-container-low hover:bg-surface-container p-3 flex justify-between items-center group cursor-pointer transition-colors">
+<span class="text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Implement Stripe Webhooks</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+</li>
+<li class="bg-surface-container-low hover:bg-surface-container p-3 flex justify-between items-center group cursor-pointer transition-colors">
+<span class="text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Optimize SQL Queries</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+</li>
+</ul>
+</div>
+<!-- Category: Blocked -->
+<div class="space-y-4 opacity-60">
+<h3 class="font-headline text-[10px] uppercase tracking-[0.2em] text-error font-bold px-2">Blocked</h3>
+<div class="bg-surface-container-low p-3 flex justify-between items-center cursor-pointer">
+<span class="text-sm text-on-surface-variant">Update Documentation</span>
+<span class="material-symbols-outlined text-error text-sm" data-icon="block">block</span>
+</div>
+</div>
+</nav>
+</aside>
+<!-- Center Column: Focus Area -->
+<section class="col-span-6 flex flex-col items-start justify-center text-left py-12 px-8">
+<h1 class="font-headline text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-on-surface mb-6 leading-tight">
+                Refactor Auth Middleware
+            </h1>
+<div class="font-headline font-light text-8xl md:text-9xl tracking-tighter text-primary mb-16 select-none">
+                01:42:08
+            </div>
+<div class="flex gap-4">
+<button class="bg-surface-container-highest text-on-surface font-headline font-bold uppercase tracking-widest px-12 py-4 hover:bg-surface-bright active:scale-95 transition-all flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="stop" style="font-variation-settings: 'FILL' 1;">stop</span>
+                    Stop
+                </button>
+<button class="bg-surface-container-low border border-outline-variant/20 text-on-surface-variant font-headline font-bold uppercase tracking-widest px-12 py-4 hover:text-on-surface active:scale-95 transition-all flex items-center gap-3">
+<span class="material-symbols-outlined" data-icon="restart_alt">restart_alt</span>
+                    Reset
+                </button>
+</div>
+</section>
+<!-- Right Column: Quick Actions -->
+<aside class="col-span-3 space-y-10">
+<div class="space-y-4">
+<h3 class="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Quick Actions</h3>
+<div class="space-y-3">
+<button class="w-full text-left bg-surface-container p-3 text-xs font-mono text-tertiary hover:bg-surface-container-high transition-colors flex justify-between items-center group">
+<span>git push origin master</span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100" data-icon="content_copy">content_copy</span>
+</button>
+<button class="w-full text-left bg-surface-container p-3 text-xs font-mono text-tertiary hover:bg-surface-container-high transition-colors flex justify-between items-center group">
+<span>npm run build:prod</span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100" data-icon="content_copy">content_copy</span>
+</button>
+<button class="w-full text-left bg-surface-container p-3 text-xs font-mono text-primary hover:bg-surface-container-high transition-colors flex justify-between items-center group">
+<span>ssh vault-admin@10.0.0.4</span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100" data-icon="terminal">terminal</span>
+</button>
+</div>
+</div>
+<div class="space-y-4">
+<h3 class="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">System Links</h3>
+<div class="grid grid-cols-2 gap-2">
+<a class="bg-surface-container-low p-4 aspect-square flex flex-col justify-center items-center gap-2 hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined text-primary" data-icon="monitoring">monitoring</span>
+<span class="text-[10px] uppercase tracking-tighter">Logs</span>
+</a>
+<a class="bg-surface-container-low p-4 aspect-square flex flex-col justify-center items-center gap-2 hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined text-primary" data-icon="database">database</span>
+<span class="text-[10px] uppercase tracking-tighter">DB</span>
+</a>
+<a class="bg-surface-container-low p-4 aspect-square flex flex-col justify-center items-center gap-2 hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined text-primary" data-icon="cloud_done">cloud_done</span>
+<span class="text-[10px] uppercase tracking-tighter">CI/CD</span>
+</a>
+<a class="bg-surface-container-low p-4 aspect-square flex flex-col justify-center items-center gap-2 hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined text-primary" data-icon="api">api</span>
+<span class="text-[10px] uppercase tracking-tighter">Docs</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Bottom Row: Notes & Resources -->
+<section class="col-span-6 mt-12">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="edit_note">edit_note</span>
+<h3 class="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Notes (Markdown)</h3>
+</div>
+<div class="bg-surface-container-low p-6 font-mono text-sm text-on-surface-variant/80 min-h-[200px] leading-relaxed border-t border-outline-variant/10">
+<p class="mb-4"># auth middleware cleanup</p>
+<p class="mb-2 text-tertiary">- [ ] Replace JWT verify with custom logic</p>
+<p class="mb-2">- [ ] Cache session tokens in Redis</p>
+<p class="mb-2">- [x] Fix CORS pre-flight issue</p>
+<p class="mt-4 opacity-50 cursor-text">_Click to continue typing..._</p>
+</div>
+</section>
+<section class="col-span-6 mt-12">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="link">link</span>
+<h3 class="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Resources</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<a class="flex items-center gap-4 bg-surface-container-low p-4 group hover:bg-surface-container transition-colors" href="#">
+<div class="w-10 h-10 bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="book">book</span>
+</div>
+<div>
+<div class="text-sm font-medium">React Docs</div>
+<div class="text-[10px] text-on-surface-variant/60 uppercase">Documentation</div>
+</div>
+</a>
+<a class="flex items-center gap-4 bg-surface-container-low p-4 group hover:bg-surface-container transition-colors" href="#">
+<div class="w-10 h-10 bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="terminal">terminal</span>
+</div>
+<div>
+<div class="text-sm font-medium">AWS Console</div>
+<div class="text-[10px] text-on-surface-variant/60 uppercase">Infrastructure</div>
+</div>
+</a>
+<a class="flex items-center gap-4 bg-surface-container-low p-4 group hover:bg-surface-container transition-colors" href="#">
+<div class="w-10 h-10 bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="forum">forum</span>
+</div>
+<div>
+<div class="text-sm font-medium">Stack Overflow</div>
+<div class="text-[10px] text-on-surface-variant/60 uppercase">Community</div>
+</div>
+</a>
+<a class="flex items-center gap-4 bg-surface-container-low p-4 group hover:bg-surface-container transition-colors" href="#">
+<div class="w-10 h-10 bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="history">history</span>
+</div>
+<div>
+<div class="text-sm font-medium">V8 Release Notes</div>
+<div class="text-[10px] text-on-surface-variant/60 uppercase">Reference</div>
+</div>
+</a>
+</div>
+</section>
+</main>
+<!-- Footer: Project and Daily Stats -->
+<footer class="fixed bottom-0 w-full z-50 bg-surface-container-lowest h-12 flex items-center justify-around px-12 border-t border-outline-variant/10">
+<div class="flex items-center gap-2 group">
+<span class="material-symbols-outlined text-xs text-tertiary" data-icon="settings_input_antenna">settings_input_antenna</span>
+<span class="font-headline text-[10px] uppercase tracking-[0.1em] font-medium text-on-surface-variant group-hover:text-tertiary transition-colors">99.9% Uptime</span>
+</div>
+<div class="flex items-center gap-2 group">
+<span class="material-symbols-outlined text-xs text-tertiary" data-icon="speed">speed</span>
+<span class="font-headline text-[10px] uppercase tracking-[0.1em] font-medium text-on-surface-variant group-hover:text-tertiary transition-colors">2.4s Latency</span>
+</div>
+<div class="flex items-center gap-2 group">
+<span class="material-symbols-outlined text-xs text-tertiary" data-icon="rocket_launch">rocket_launch</span>
+<span class="font-headline text-[10px] uppercase tracking-[0.1em] font-medium text-on-surface-variant group-hover:text-tertiary transition-colors">14 Builds</span>
+</div>
+<div class="flex items-center gap-2 group">
+<span class="material-symbols-outlined text-xs text-tertiary" data-icon="sync">sync</span>
+<span class="font-headline text-[10px] uppercase tracking-[0.1em] font-medium text-on-surface-variant group-hover:text-tertiary transition-colors">Syncing</span>
+</div>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant/50">Focus</span>
+<span class="text-xs font-headline font-bold text-primary">04:30:12</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant/50">Progress</span>
+<span class="text-xs font-headline font-bold text-tertiary">65%</span>
+</div>
+</div>
+</footer>
+</body></html>

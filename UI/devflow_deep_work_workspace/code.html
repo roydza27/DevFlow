@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevFlow | Kinetic Vault Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#263143",
+              "tertiary": "#4edea3",
+              "on-secondary-fixed-variant": "#3c475a",
+              "surface-bright": "#31394d",
+              "on-background": "#dae2fd",
+              "on-primary": "#1000a9",
+              "primary-fixed": "#e1e0ff",
+              "on-secondary-fixed": "#111c2d",
+              "inverse-on-surface": "#283044",
+              "secondary-container": "#3e495d",
+              "on-tertiary-fixed-variant": "#005236",
+              "on-secondary-container": "#aeb9d0",
+              "primary-container": "#4b4dd8",
+              "primary-fixed-dim": "#c0c1ff",
+              "on-tertiary": "#003824",
+              "inverse-surface": "#dae2fd",
+              "secondary": "#bcc7de",
+              "outline-variant": "#464555",
+              "on-error": "#690005",
+              "surface-container-low": "#131b2e",
+              "surface-dim": "#0b1326",
+              "tertiary-container": "#006e4b",
+              "on-surface-variant": "#c7c4d8",
+              "on-primary-container": "#d9d8ff",
+              "surface-tint": "#c0c1ff",
+              "on-tertiary-fixed": "#002113",
+              "secondary-fixed": "#d8e3fb",
+              "error": "#ffb4ab",
+              "surface": "#0b1326",
+              "on-primary-fixed": "#07006c",
+              "surface-container-highest": "#2d3449",
+              "on-tertiary-container": "#67f4b7",
+              "surface-variant": "#2d3449",
+              "on-surface": "#dae2fd",
+              "tertiary-fixed": "#6ffbbe",
+              "primary": "#c0c1ff",
+              "inverse-primary": "#494bd6",
+              "surface-container": "#171f33",
+              "secondary-fixed-dim": "#bcc7de",
+              "outline": "#918fa1",
+              "on-error-container": "#ffdad6",
+              "surface-container-lowest": "#060e20",
+              "surface-container-high": "#222a3d",
+              "background": "#0b1326",
+              "on-primary-fixed-variant": "#2f2ebe",
+              "error-container": "#93000a",
+              "tertiary-fixed-dim": "#4edea3"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Space Grotesk', sans-serif; }
+        .glass-panel {
+            background: rgba(34, 42, 61, 0.2);
+            backdrop-filter: blur(12px);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #464555; }
+        .active-task-glow {
+            box-shadow: 0 0 15px -5px #4edea3;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-tertiary/30 min-h-screen flex flex-col overflow-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 border-none bg-[#131b2e] flex justify-between items-center h-14 px-6 w-full">
+<div class="flex items-center gap-4">
+<span class="text-[#4edea3] font-bold text-xl tracking-tighter font-headline">DevFlow</span>
+<div class="flex items-center gap-1 px-2 py-1 bg-surface-container-high rounded cursor-pointer hover:bg-[#222a3d] transition-colors duration-100 group active:scale-95 transition-transform">
+<span class="text-on-surface-variant font-label text-sm">main_engine_v2</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div class="hidden md:flex items-center gap-6">
+<span class="text-[#4edea3] font-bold font-headline text-lg tracking-tight">Workspace</span>
+</div>
+</header>
+<!-- Main Content Grid -->
+<main class="flex-1 mt-14 mb-10 grid grid-cols-12 gap-0 overflow-hidden">
+<!-- Left Panel: Task System -->
+<aside class="col-span-3 bg-surface-container-low border-r border-outline-variant/15 flex flex-col h-full overflow-hidden">
+<div class="p-4 border-b border-outline-variant/15">
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-b-2 border-outline-variant focus:border-tertiary transition-colors py-2 px-3 text-sm focus:outline-none placeholder:text-on-surface-variant/50" placeholder="Add task..." type="text"/>
+<span class="absolute right-3 top-2.5 material-symbols-outlined text-on-surface-variant/30 text-sm" data-icon="add">add</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+<!-- DOING Group -->
+<section>
+<header class="flex items-center justify-between mb-2">
+<span class="font-headline text-xs font-bold tracking-widest text-tertiary uppercase">Doing</span>
+<span class="text-[10px] text-on-surface-variant/50">1</span>
+</header>
+<div class="bg-surface-container-high active-task-glow relative overflow-hidden p-3 rounded-sm border-l-2 border-tertiary">
+<div class="flex items-start justify-between gap-3">
+<span class="text-sm font-medium leading-tight">Refactor auth_middleware logic for edge cases</span>
+</div>
+<div class="mt-3 flex items-center gap-2 opacity-80">
+<button class="hover:text-tertiary transition-colors"><span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span></button>
+<button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-sm" data-icon="block">block</span></button>
+<button class="hover:text-primary transition-colors ml-auto"><span class="material-symbols-outlined text-sm" data-icon="edit">edit</span></button>
+<button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-sm" data-icon="delete">delete</span></button>
+</div>
+</div>
+</section>
+<!-- TODO Group -->
+<section>
+<header class="flex items-center justify-between mb-2">
+<span class="font-headline text-xs font-bold tracking-widest text-on-surface-variant uppercase">Todo</span>
+<span class="text-[10px] text-on-surface-variant/50">3</span>
+</header>
+<div class="space-y-1">
+<div class="p-2 hover:bg-surface-container-highest transition-colors cursor-pointer text-sm text-on-surface-variant">Update API documentation</div>
+<div class="p-2 hover:bg-surface-container-highest transition-colors cursor-pointer text-sm text-on-surface-variant">Patch CVE-2024-0982</div>
+<div class="p-2 hover:bg-surface-container-highest transition-colors cursor-pointer text-sm text-on-surface-variant">Review PR #892 from @sarah_k</div>
+</div>
+</section>
+<!-- BLOCKED Group -->
+<section>
+<header class="flex items-center justify-between mb-2">
+<span class="font-headline text-xs font-bold tracking-widest text-error/70 uppercase">Blocked</span>
+</header>
+<div class="p-2 bg-surface-container-lowest/50 border-l-2 border-error/30 text-sm text-on-surface-variant/60">
+                        CI Pipeline integration tests failing
+                    </div>
+</section>
+<!-- DONE Group -->
+<section>
+<header class="flex items-center justify-between mb-2">
+<span class="font-headline text-xs font-bold tracking-widest text-on-surface-variant/40 uppercase">Done</span>
+</header>
+<div class="space-y-1 opacity-40">
+<div class="p-2 text-sm line-through">Fix mobile layout overflow</div>
+<div class="p-2 text-sm line-through">Initial database seed</div>
+</div>
+</section>
+</div>
+</aside>
+<!-- Center Panel: Focus Core -->
+<section class="col-span-6 flex flex-col items-center justify-center relative p-12 bg-surface">
+<div class="text-center w-full max-w-2xl">
+<header class="mb-12">
+<p class="text-tertiary font-headline text-sm tracking-[0.2em] uppercase mb-2">Working on</p>
+<h2 class="text-3xl font-headline font-bold text-on-surface tracking-tight">Refactor auth_middleware logic</h2>
+</header>
+<div class="mb-12 relative flex items-center justify-center">
+<!-- Massive Central Timer -->
+<span class="text-[9rem] font-headline font-light leading-none tracking-tighter text-on-surface select-none">
+                        24:18
+                    </span>
+</div>
+<div class="flex items-center justify-center gap-8 mb-16">
+<button class="w-16 h-16 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center transition-transform active:scale-95">
+<span class="material-symbols-outlined text-3xl" data-icon="play_arrow" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-16 h-16 rounded-full border-2 border-error/50 text-error flex items-center justify-center hover:bg-error/10 transition-colors active:scale-95">
+<span class="material-symbols-outlined text-3xl" data-icon="stop" data-weight="fill" style="font-variation-settings: 'FILL' 1;">stop</span>
+</button>
+</div>
+<div class="grid grid-cols-3 gap-8 pt-8 border-t border-outline-variant/10">
+<div class="text-center">
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Today</p>
+<p class="text-xl font-headline font-medium">4h 20m</p>
+</div>
+<div class="text-center border-x border-outline-variant/10">
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Session</p>
+<p class="text-xl font-headline font-medium text-tertiary">1h 12m</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Tasks</p>
+<p class="text-xl font-headline font-medium">8</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Panel: Context Sidebar -->
+<aside class="col-span-3 bg-surface-container-low border-l border-outline-variant/15 flex flex-col h-full overflow-hidden">
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+<!-- Commands Section -->
+<section>
+<header class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="terminal">terminal</span>
+<h3 class="font-headline text-xs font-bold tracking-widest uppercase text-on-surface-variant">Commands</h3>
+</header>
+<div class="space-y-2">
+<div class="group flex items-center justify-between p-2 bg-surface-container-lowest rounded-sm hover:bg-surface-container-high transition-colors">
+<code class="text-xs text-on-primary-fixed-variant">npm run build:prod</code>
+<button class="opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="content_copy">content_copy</span></button>
+</div>
+<div class="group flex items-center justify-between p-2 bg-surface-container-lowest rounded-sm hover:bg-surface-container-high transition-colors">
+<code class="text-xs text-on-primary-fixed-variant">docker-compose up -d</code>
+<button class="opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="content_copy">content_copy</span></button>
+</div>
+</div>
+</section>
+<!-- Resources Section -->
+<section>
+<header class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="link">link</span>
+<h3 class="font-headline text-xs font-bold tracking-widest uppercase text-on-surface-variant">Resources</h3>
+</header>
+<div class="space-y-3">
+<a class="block text-sm text-primary hover:underline flex items-center gap-2" href="#">
+<span>API Specification v2</span>
+<span class="material-symbols-outlined text-[10px]" data-icon="north_east">north_east</span>
+</a>
+<a class="block text-sm text-primary hover:underline flex items-center gap-2" href="#">
+<span>Figma Design System</span>
+<span class="material-symbols-outlined text-[10px]" data-icon="north_east">north_east</span>
+</a>
+<a class="block text-sm text-primary hover:underline flex items-center gap-2" href="#">
+<span>Sentry Dashboard</span>
+<span class="material-symbols-outlined text-[10px]" data-icon="north_east">north_east</span>
+</a>
+</div>
+</section>
+<!-- Logs Section -->
+<section class="flex flex-col h-[300px]">
+<header class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="history_edu">history_edu</span>
+<h3 class="font-headline text-xs font-bold tracking-widest uppercase text-on-surface-variant">Logs</h3>
+</header>
+<div class="flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-2 mb-4">
+<div class="text-[11px]">
+<span class="text-on-surface-variant/40">14:02</span>
+<p class="text-on-surface-variant mt-1">Found memory leak in middleware. Isolated to JWT parsing.</p>
+</div>
+<div class="text-[11px]">
+<span class="text-on-surface-variant/40">13:45</span>
+<p class="text-on-surface-variant mt-1">Started refactoring auth_middleware.</p>
+</div>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-b border-outline-variant/30 text-xs py-2 px-3 focus:border-tertiary focus:outline-none transition-colors" placeholder="Add entry..." type="text"/>
+</div>
+</section>
+</div>
+</aside>
+</main>
+<!-- Bottom Section: Notes Workspace -->
+<section class="h-48 bg-surface-container-lowest border-t border-outline-variant/15 grid grid-cols-12 shrink-0">
+<!-- Vertical File List -->
+<aside class="col-span-2 border-r border-outline-variant/15 p-4 flex flex-col gap-2 overflow-y-auto custom-scrollbar">
+<div class="flex items-center gap-2 px-2 py-1 bg-surface-container-highest text-tertiary text-xs rounded-sm cursor-pointer">
+<span class="material-symbols-outlined text-xs" data-icon="description">description</span>
+<span class="truncate">scratchpad.md</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 text-on-surface-variant/60 text-xs rounded-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-xs" data-icon="description">description</span>
+<span class="truncate">deployment_notes.md</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 text-on-surface-variant/60 text-xs rounded-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-xs" data-icon="description">description</span>
+<span class="truncate">api_keys.vault</span>
+</div>
+</aside>
+<!-- Markdown Editor -->
+<div class="col-span-10 p-6 relative">
+<textarea class="w-full h-full bg-transparent border-none outline-none resize-none font-mono text-sm text-on-surface-variant leading-relaxed custom-scrollbar" placeholder="Start typing notes..."># Scratchpad
+
+- Remember to rotate the AWS access keys before EOD.
+- Need to check the rate limiting implementation on the auth endpoint.
+- Test against Node 20.x environment.
+
+## Current focus
+The middleware needs a more robust error handler that doesn't expose internal stack traces to the client.</textarea>
+<div class="absolute bottom-4 right-6 flex items-center gap-4 text-[10px] text-on-surface-variant/30 uppercase tracking-widest font-medium">
+<span>Markdown enabled</span>
+<span>UTF-8</span>
+<span>242 chars</span>
+</div>
+</div>
+</section>
+<!-- BottomNavBar (Footer) -->
+<footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-8 bg-[#060e20] dark:bg-[#060e20] z-50 h-10 border-t border-[#464555]/15">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-[#c7c4d8]/70" data-icon="schedule">schedule</span>
+<span class="font-['Inter'] text-[11px] uppercase tracking-[0.05rem] font-medium text-[#4edea3]">08:42 hrs today</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-[#c7c4d8]/70" data-icon="check_circle">check_circle</span>
+<span class="font-['Inter'] text-[11px] uppercase tracking-[0.05rem] font-medium text-[#c7c4d8]/70">12 tasks completed</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] text-on-surface-variant/20 font-headline">SYSTEM SECURE // ENCRYPTION ACTIVE</span>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevFlow | Refactor Database Schema</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-lowest": "#060e20",
+                        "surface-container": "#171f33",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "outline-variant": "#464555",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-secondary-container": "#aeb9d0",
+                        "on-error": "#690005",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "secondary": "#bcc7de",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#31394d",
+                        "surface-dim": "#0b1326",
+                        "on-surface": "#dae2fd",
+                        "secondary-fixed": "#d8e3fb",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "inverse-surface": "#dae2fd",
+                        "on-tertiary": "#003824",
+                        "on-background": "#dae2fd",
+                        "secondary-container": "#3e495d",
+                        "on-tertiary-container": "#67f4b7",
+                        "on-surface-variant": "#c7c4d8",
+                        "on-secondary": "#263143",
+                        "surface-container-low": "#131b2e",
+                        "surface-container-highest": "#2d3449",
+                        "background": "#0b1326",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "primary-fixed": "#e1e0ff",
+                        "on-primary-container": "#d9d8ff",
+                        "on-secondary-fixed": "#111c2d",
+                        "inverse-primary": "#494bd6",
+                        "error-container": "#93000a",
+                        "primary-container": "#4b4dd8",
+                        "tertiary-container": "#006e4b",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "surface": "#0b1326",
+                        "on-tertiary-fixed": "#002113",
+                        "tertiary": "#4edea3",
+                        "surface-container-high": "#222a3d",
+                        "surface-tint": "#c0c1ff",
+                        "outline": "#918fa1",
+                        "surface-variant": "#2d3449",
+                        "on-primary-fixed": "#07006c",
+                        "on-primary": "#1000a9",
+                        "inverse-on-surface": "#283044",
+                        "primary": "#c0c1ff"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        .space-grotesk { font-family: 'Space Grotesk', sans-serif; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #464555; border-radius: 2px; }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+<!-- TOP BAR (Minimal) -->
+<header class="h-14 bg-surface-dim flex items-center justify-between px-6 z-50 fixed top-0 w-full">
+<div class="flex items-center gap-6">
+<span class="text-primary font-headline font-bold text-xl tracking-tight">DevFlow</span>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-3">
+<span class="text-on-surface-variant text-sm font-medium">Core Engine</span>
+<span class="bg-surface-container-high px-2 py-0.5 rounded text-[10px] text-tertiary-fixed-dim font-mono tracking-widest uppercase">v1.2.0</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="unfold_more">unfold_more</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="account_tree">account_tree</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="settings">settings</span>
+</div>
+</header>
+<main class="flex-1 flex mt-14 mb-8 overflow-hidden">
+<!-- LEFT PANEL (TASK SYSTEM) -->
+<aside class="w-72 bg-surface-container-low border-r border-outline-variant/15 flex flex-col p-4 overflow-y-auto">
+<div class="mb-6">
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-none border-b-2 border-outline-variant focus:border-tertiary focus:ring-0 text-sm py-2 px-3 transition-all placeholder:text-outline/50" placeholder="Quick Add Task..." type="text"/>
+<span class="absolute right-2 top-2 text-outline/50 text-xs font-mono">↵</span>
+</div>
+</div>
+<div class="space-y-8">
+<!-- DOING -->
+<section>
+<h3 class="text-[10px] font-bold tracking-[0.15em] text-tertiary uppercase mb-3">DOING</h3>
+<div class="bg-surface-container-high p-4 rounded-lg border-l-2 border-tertiary shadow-lg">
+<p class="text-sm font-semibold text-on-surface leading-snug">Refactor Database Schema</p>
+<div class="mt-2 flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-[10px] font-mono text-on-surface-variant">ELAPSED: 01:22:14</span>
+</div>
+</div>
+</section>
+<!-- TODO -->
+<section>
+<h3 class="text-[10px] font-bold tracking-[0.15em] text-on-surface-variant/60 uppercase mb-3">TODO</h3>
+<div class="space-y-2">
+<div class="p-3 bg-surface-container/50 rounded hover:bg-surface-container transition-colors group cursor-pointer">
+<p class="text-xs text-on-surface-variant group-hover:text-on-surface">Optimize S3 Uploads</p>
+</div>
+<div class="p-3 bg-surface-container/50 rounded hover:bg-surface-container transition-colors group cursor-pointer">
+<p class="text-xs text-on-surface-variant group-hover:text-on-surface">Unit test auth logic</p>
+</div>
+</div>
+</section>
+<!-- BLOCKED -->
+<section>
+<h3 class="text-[10px] font-bold tracking-[0.15em] text-error uppercase mb-3">BLOCKED</h3>
+<div class="p-3 bg-surface-container-lowest/50 rounded border border-error/10">
+<p class="text-xs text-error/80">API Gateway Handlers</p>
+</div>
+</section>
+<!-- DONE -->
+<section>
+<h3 class="text-[10px] font-bold tracking-[0.15em] text-on-surface-variant/40 uppercase mb-3">DONE</h3>
+<div class="space-y-1 opacity-40">
+<p class="text-xs line-through text-on-surface-variant">Update project dependencies</p>
+<p class="text-xs line-through text-on-surface-variant">Review PR #452</p>
+</div>
+</section>
+</div>
+</aside>
+<!-- CENTER PANEL (FOCUS AREA) -->
+<section class="flex-1 bg-surface flex flex-col overflow-hidden">
+<div class="flex-1 flex flex-col items-center justify-center p-12 relative">
+<!-- Large Task Display -->
+<div class="text-center max-w-2xl w-full">
+<h1 class="space-grotesk text-5xl font-bold text-on-surface tracking-tight leading-tight mb-8">Refactor Database Schema</h1>
+<div class="space-grotesk text-[10rem] font-extralight text-tertiary leading-none tracking-tighter mb-12 select-none">
+                        01:22:14
+                    </div>
+<div class="flex items-center justify-center gap-8">
+<button class="px-12 py-3 bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-bold tracking-widest uppercase transition-all active:scale-95 flex items-center gap-3">
+<span class="material-symbols-outlined text-lg" data-icon="pause">pause</span> PAUSE
+                        </button>
+<button class="px-12 py-3 bg-error-container hover:bg-error text-on-error-container font-bold tracking-widest uppercase transition-all active:scale-95 flex items-center gap-3">
+<span class="material-symbols-outlined text-lg" data-icon="stop" style="font-variation-settings: 'FILL' 1;">stop</span> STOP
+                        </button>
+</div>
+</div>
+<!-- Ambient Glow Decoration -->
+<div class="absolute -z-10 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+</div>
+<!-- BOTTOM SECTION (NOTES WORKSPACE) -->
+<div class="h-64 border-t border-outline-variant/15 flex">
+<div class="w-64 bg-surface-container-lowest border-r border-outline-variant/15 flex flex-col p-4 overflow-y-auto">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">NOTES</span>
+<span class="material-symbols-outlined text-sm cursor-pointer" data-icon="create_new_folder">create_new_folder</span>
+</div>
+<ul class="space-y-1">
+<li class="px-2 py-1.5 bg-surface-container-high rounded text-xs text-tertiary flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="description">description</span> schema-plan.md
+                        </li>
+<li class="px-2 py-1.5 hover:bg-surface-container rounded text-xs text-on-surface-variant flex items-center gap-2 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-xs" data-icon="description">description</span> migrations.sql
+                        </li>
+<li class="px-2 py-1.5 hover:bg-surface-container rounded text-xs text-on-surface-variant flex items-center gap-2 cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-xs" data-icon="description">description</span> meeting-notes.txt
+                        </li>
+</ul>
+</div>
+<div class="flex-1 bg-surface-container-low p-6 font-mono text-sm overflow-y-auto relative">
+<div class="text-on-surface-variant leading-relaxed max-w-3xl">
+<span class="text-tertiary"># Database Refactor Strategy</span><br/><br/>
+                        - Migration to UUID for all primary keys<br/>
+                        - Indexing strategy for <span class="bg-surface-container-highest px-1 text-primary">events</span> table<br/>
+                        - Archival policy for 12mo+ records<br/><br/>
+<span class="text-outline">// TODO: Check constraints on user_metadata</span><br/>
+                        ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP;<br/>
+<span class="inline-block w-1.5 h-4 bg-tertiary align-middle animate-pulse ml-1"></span>
+</div>
+</div>
+</div>
+</section>
+<!-- RIGHT PANEL (WORKSPACE SIDEBAR) -->
+<aside class="w-80 bg-surface-container-low border-l border-outline-variant/15 flex flex-col overflow-hidden">
+<!-- Commands -->
+<div class="flex-1 overflow-y-auto">
+<section class="p-4 border-b border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Commands</h3>
+<span class="material-symbols-outlined text-xs text-outline" data-icon="terminal">terminal</span>
+</div>
+<div class="space-y-3">
+<div class="bg-surface-container-lowest p-2 rounded flex items-center justify-between group">
+<code class="text-[11px] font-mono text-primary-fixed-dim">npm run migrate:up</code>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100 cursor-pointer" data-icon="content_copy">content_copy</span>
+</div>
+<div class="bg-surface-container-lowest p-2 rounded flex items-center justify-between group">
+<code class="text-[11px] font-mono text-primary-fixed-dim">docker-compose restart db</code>
+<span class="material-symbols-outlined text-xs text-outline opacity-0 group-hover:opacity-100 cursor-pointer" data-icon="content_copy">content_copy</span>
+</div>
+</div>
+</section>
+<!-- Resources -->
+<section class="p-4 border-b border-outline-variant/10">
+<h3 class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase mb-4">Resources</h3>
+<div class="grid grid-cols-1 gap-2">
+<a class="flex items-center gap-3 p-2 hover:bg-surface-container rounded transition-colors group" href="#">
+<span class="material-symbols-outlined text-sm text-outline group-hover:text-primary" data-icon="figma">brand_family</span>
+<span class="text-xs text-on-surface-variant group-hover:text-on-surface">Design Specs (Figma)</span>
+</a>
+<a class="flex items-center gap-3 p-2 hover:bg-surface-container rounded transition-colors group" href="#">
+<span class="material-symbols-outlined text-sm text-outline group-hover:text-primary" data-icon="github">hub</span>
+<span class="text-xs text-on-surface-variant group-hover:text-on-surface">GitHub Repo</span>
+</a>
+<a class="flex items-center gap-3 p-2 hover:bg-surface-container rounded transition-colors group" href="#">
+<span class="material-symbols-outlined text-sm text-outline group-hover:text-primary" data-icon="api">api</span>
+<span class="text-xs text-on-surface-variant group-hover:text-on-surface">PostgreSQL API Docs</span>
+</a>
+</div>
+</section>
+<!-- Logs -->
+<section class="p-4 flex flex-col h-[300px]">
+<h3 class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase mb-4">Logs</h3>
+<div class="flex-1 font-mono text-[10px] space-y-1.5 overflow-y-auto mb-4 text-outline/70">
+<div><span class="text-tertiary-container">14:22:01</span> DB Connection established</div>
+<div><span class="text-tertiary-container">14:25:44</span> Backup verified... [OK]</div>
+<div><span class="text-error-container">14:31:12</span> Constraint check failed (id)</div>
+<div><span class="text-tertiary-container">14:40:05</span> Index created: idx_events_ts</div>
+<div><span class="text-tertiary-container">15:02:11</span> Script log started</div>
+</div>
+<div class="relative mt-auto">
+<input class="w-full bg-surface-container-lowest border-none text-[11px] py-2 px-3 focus:ring-1 focus:ring-tertiary/30 rounded placeholder:text-outline/40" placeholder="Quick Log..." type="text"/>
+<span class="absolute right-2 top-2 text-outline/30 text-[10px] font-mono">LOG</span>
+</div>
+</section>
+</div>
+</aside>
+</main>
+<!-- FOOTER (Extremely Minimal) -->
+<footer class="h-8 fixed bottom-0 w-full bg-surface-container-lowest border-t border-outline-variant/10 flex items-center justify-between px-6 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-bold tracking-widest text-outline uppercase">TIME TODAY:</span>
+<span class="text-[10px] font-mono text-tertiary-fixed-dim">04H 20M</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[9px] font-bold tracking-widest text-outline uppercase">TASKS DONE:</span>
+<span class="text-[10px] font-mono text-on-surface">8</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[9px] font-bold tracking-widest text-outline uppercase">DevFlow v1.0.4</span>
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+</div>
+</footer>
+</body></html>
