@@ -1,7 +1,4 @@
----
-modified: 2026-03-21T12:35:25+05:30
----
-# DEVFLOW UI FLOW DOCUMENT
+# DEVFLOW UI FLOW DOCUMENT (FINAL)
 
 ---
 
@@ -11,9 +8,10 @@ Define **how the user interacts with DevFlow step-by-step**.
 
 Focus:
 
-- No friction
-- No unnecessary decisions
-- One-screen workflow
+* Zero friction
+* No unnecessary decisions
+* Continuous workflow
+* Single-screen interaction
 
 ---
 
@@ -23,16 +21,17 @@ Focus:
 
 ## 🧠 Guiding Flow
 
-Open → Resume → Focus → Act → Track → Finish
+Open → Resume → Focus → Act → Log → Continue → Finish
 
 ---
 
 ## 🎯 UX Goals
 
-- Zero navigation
-- Minimal clicks
-- Instant interaction
-- Clear “what to do next”
+* Zero navigation
+* Instant resume
+* Minimal cognitive load
+* Everything visible in context
+* No decision paralysis
 
 ---
 
@@ -42,127 +41,173 @@ Open → Resume → Focus → Act → Track → Finish
 
 ## 🔹 FLOW: Open Application
 
-### Step-by-step:
+### Steps:
 
 1. User opens app
 2. System loads last active project
 3. System fetches:
-    - tasks
-    - notes
-    - links
-    - actions
-    - stats
+
+* tasks
+* logs
+* notes
+* resources
+* commands
+* stats
 
 ---
 
-## 🖥️ UI STATE:
+## 🖥️ UI STATE (FIRST VIEW)
 
-User sees:
+User immediately sees:
 
-- Project name
-- Active task (highlighted)
-- Task list
-- Timer button
-- Quick actions
-- Notes + links
-- Progress
+* Project name (top)
+* Active task (center)
+* Timer
+* Task list (left)
+* Quick actions + resources + logs (right)
+* Notes workspace (bottom)
+* Footer stats
 
 ---
 
 ## 🧠 Decision State:
 
-👉 **User should NOT think**  
-System answers:
+👉 System answers:
 
-> “Continue this task”
+> “Continue this work”
+
+👉 No user decision required
 
 ---
 
----
-
-# 📌 4. Main Dashboard Layout Flow
+# 📌 4. Workspace Layout Flow (UPDATED)
 
 ---
 
 ## 🧩 Layout Zones
 
-[ Top Bar ]  
-   ├── Project Name  
-   ├── Status  
-   └── Progress  
-  
-[ Left Panel ]  
-   ├── Task List  
-   └── Quick Add  
-  
-[ Center Panel ]  
-   ├── Active Task  
-   └── Timer  
-  
-[ Right Panel ]  
-   ├── Actions  
-   ├── Notes  
-   └── Links  
-  
-[ Bottom Bar ]  
-   ├── Time Today  
-   └── Tasks Done Today
+---
+
+### 🔹 Top Bar
+
+* Project name
+* Project switch (minimal dropdown)
+* No navigation menus
 
 ---
 
-## 🎯 UX Principle:
+### 🔹 Left Panel — Tasks
 
-👉 Everything visible  
-👉 No switching screens
+* Task groups:
+
+  * doing
+  * todo
+  * blocked
+  * done
+* Quick add input
+* Task actions
 
 ---
 
-# 📌 5. Task Flow (CORE)
+### 🔹 Center Panel — Focus Area (PRIMARY)
+
+* Active task (large)
+* Timer (central)
+* Controls (start/stop)
+* Lightweight insights:
+
+  * time today
+  * last session
+  * tasks completed
+
+---
+
+### 🔹 Right Panel — Collapsible Workspace Panels
+
+Contains:
+
+* Quick Actions (commands)
+* Resources (categorized)
+* Logs (recent + quick add)
+
+👉 Each section is collapsible
+
+---
+
+### 🔹 Bottom Panel — Notes Workspace
+
+* Multi-file notes system
+* Sidebar file list
+* Markdown editor
+
+---
+
+### 🔹 Footer
+
+* Time today
+* Tasks completed
+
+---
+
+## 🎯 UX Principle
+
+👉 Everything is visible
+👉 Nothing requires navigation
+👉 Context is always preserved
+
+---
+
+# 📌 5. Task Flow (CORE WORKFLOW)
 
 ---
 
 ## 🔹 FLOW: Add Task
 
-### Steps:
-
-1. User focuses input
-2. Types task
-3. Presses Enter
-
----
-
-### UI Behavior:
-
-- Task appears instantly
-- Status = `todo`
-- Added to middle section
-
----
-
----
-
-## 🔹 FLOW: Start Working on Task
-
 ---
 
 ### Steps:
 
-1. User clicks task OR sets to `doing`
+1. User types in quick input
+2. Press Enter
 
 ---
 
 ### System Behavior:
 
-- Previous `doing` → reset to `todo`
-- Selected task → `doing`
-- Moves to top
+* Create task
+* Status = `todo`
 
 ---
 
 ### UI Behavior:
 
-- Highlight task
-- Update Active Task panel
+* Task appears instantly in `todo`
+
+---
+
+---
+
+## 🔹 FLOW: Activate Task (Start Work)
+
+---
+
+### Steps:
+
+1. User clicks task
+
+---
+
+### System Behavior:
+
+* Previous `doing` → reset to `todo`
+* Selected task → `doing`
+
+---
+
+### UI Behavior:
+
+* Task moves to top
+* Active Task panel updates
 
 ---
 
@@ -174,14 +219,20 @@ System answers:
 
 ### Steps:
 
-1. User marks task as `done`
+1. User clicks “done”
 
 ---
 
 ### System Behavior:
 
-- Task moves to bottom
-- Count toward daily stats
+* Status → `done`
+
+---
+
+### UI Behavior:
+
+* Task moves to bottom
+* Update stats
 
 ---
 
@@ -193,16 +244,29 @@ System answers:
 
 ### Steps:
 
-1. User sets status → `blocked`
+1. User clicks “block”
 
 ---
 
 ### UI Behavior:
 
-- Task moves below todo
-- Visually distinct
+* Moves below todo
+* Marked visually
 
 ---
+
+---
+
+## 🔹 FLOW: Task Actions
+
+---
+
+User can:
+
+* edit
+* delete
+* mark done
+* block
 
 ---
 
@@ -216,21 +280,20 @@ System answers:
 
 ### Steps:
 
-1. User clicks “Start Timer”
+1. User clicks Start
 
 ---
 
 ### System Behavior:
 
-- Save `started_at`
-- Timer begins
+* Save `started_at`
 
 ---
 
 ### UI Behavior:
 
-- Timer starts counting
-- Button changes to “Stop”
+* Timer begins
+* Button switches to Stop
 
 ---
 
@@ -242,39 +305,159 @@ System answers:
 
 ### Steps:
 
-1. User clicks “Stop Timer”
+1. User clicks Stop
 
 ---
 
 ### System Behavior:
 
-- Calculate duration
-- Update time_spent
-- Reset `started_at`
+* Calculate duration
+* Update total time
+* Reset `started_at`
 
 ---
 
 ### UI Behavior:
 
-- Timer resets
-- Update stats
+* Timer stops
+* Stats update
 
 ---
 
 ---
 
-## 🔹 EDGE FLOW: Page Reload
+## 🔹 FLOW: Reload Recovery
 
 ---
 
 ### Behavior:
 
-- Timer continues using timestamp
-- UI recalculates elapsed time
+* Timer resumes using timestamp
+* UI recalculates elapsed time
 
 ---
 
-# 📌 7. Quick Actions Flow
+---
+
+## 🔹 FLOW: Timer Context
+
+---
+
+* Timer is linked to active task
+* Switching task may stop/reset timer (implementation-defined)
+
+---
+
+# 📌 7. Logs Flow (NEW CORE)
+
+---
+
+## 🔹 FLOW: Add Log
+
+---
+
+### Steps:
+
+1. User types log in quick input
+2. Press Enter
+
+---
+
+### System Behavior:
+
+* Save log with timestamp
+
+---
+
+### UI Behavior:
+
+* Log appears instantly in recent logs
+
+---
+
+---
+
+## 🔹 FLOW: View Logs
+
+---
+
+### Behavior:
+
+* Show recent logs in sidebar
+* Display chronologically (latest first)
+
+---
+
+---
+
+## 🔹 UX Role
+
+👉 Logs answer:
+
+> “What did I actually do?”
+
+---
+
+# 📌 8. Resources Flow (REPLACES LINKS)
+
+---
+
+## 🔹 FLOW: Add Resource
+
+---
+
+### Steps:
+
+1. User inputs:
+
+* title
+* url
+* type
+
+---
+
+### Behavior:
+
+* Resource saved instantly
+
+---
+
+---
+
+## 🔹 FLOW: View Resources
+
+---
+
+### UI Behavior:
+
+* Grouped by type:
+
+  * Docs
+  * Figma
+  * APIs
+  * Reference
+
+---
+
+---
+
+## 🔹 FLOW: Open Resource
+
+---
+
+### Steps:
+
+1. Click resource
+
+---
+
+### Behavior:
+
+* Opens in new tab
+
+---
+
+# 📌 9. Commands Flow
 
 ---
 
@@ -284,53 +467,52 @@ System answers:
 
 ### Steps:
 
-1. User clicks action
+1. User clicks command
 
 ---
 
 ### Behavior:
 
-- Command copied to clipboard
+* Copy to clipboard
 
 ---
 
-### UI Feedback:
+### Feedback:
 
-- Toast / small indicator  
-    → “Copied”
-
----
+* Show “Copied” indicator
 
 ---
 
-## 🔹 FLOW: Open Link
+# 📌 10. Notes Flow (UPGRADED)
+
+---
+
+## 🔹 FLOW: Create Note
 
 ---
 
 ### Steps:
 
-1. User clicks link
+1. User creates note file
+2. Assigns title
+
+---
+
+---
+
+## 🔹 FLOW: Switch Note
+
+---
+
+### Steps:
+
+1. User clicks file from sidebar
 
 ---
 
 ### Behavior:
 
-- Opens new tab
-
----
-
-# 📌 8. Context Flow (Notes + Links)
-
----
-
-## 🔹 FLOW: Add Note
-
----
-
-### Steps:
-
-1. User types in note field
-2. Saves automatically OR on Enter
+* Load selected note
 
 ---
 
@@ -342,33 +524,22 @@ System answers:
 
 ### Behavior:
 
-- Markdown supported
-- Live editing
+* Markdown editor
+* Live editing
 
 ---
 
 ---
 
-## 🔹 FLOW: Add Link
+## 🔹 UX Role
+
+👉 Notes answer:
+
+> “What do I know about this project?”
 
 ---
 
-### Steps:
-
-1. User inputs:
-    - title
-    - url
-2. Press Enter
-
----
-
-### Behavior:
-
-- Link appears instantly
-
----
-
-# 📌 9. Quick Add Flow (Unified Input)
+# 📌 11. Quick Add Flow (Unified)
 
 ---
 
@@ -385,39 +556,51 @@ System answers:
 
 ### Behavior:
 
-- Detect input type (task/note/link)
-- Save instantly
+* Creates:
+
+  * task
+  * log
+  * resource (depending on context)
 
 ---
 
 ### UX Goal:
 
-👉 No form  
-👉 No delay
+👉 No forms
+👉 No delays
 
 ---
 
-# 📌 10. Feedback Flow
+# 📌 12. Feedback Flow
 
 ---
 
 ## 🔹 Display:
 
-- Tasks completed today
-- Time spent today
-- Progress %
+* Tasks completed today
+* Time worked today
+* Progress %
 
 ---
 
 ## 🔹 Update Behavior:
 
-- Updates instantly on:
-    - task completion
-    - timer stop
+* Updates instantly after:
+
+  * task completion
+  * timer stop
+  * log addition
 
 ---
 
-# 📌 11. Empty State Flow
+## 🔹 UX Principle:
+
+👉 Lightweight insights
+👉 NOT dashboard
+
+---
+
+# 📌 13. Empty State Flow
 
 ---
 
@@ -425,7 +608,7 @@ System answers:
 
 UI shows:
 
-- “Create your first project”
+* “Create your first project”
 
 ---
 
@@ -433,70 +616,73 @@ UI shows:
 
 UI shows:
 
-- “Add your first task”
+* “Add your first task”
 
 ---
 
-👉 Guides user instantly
+## 🔹 Case: No Logs
+
+* Encourage logging activity
 
 ---
 
-# 📌 12. Error Flow
+---
+
+# 📌 14. Error Flow
 
 ---
 
 ## 🔹 Invalid Input
 
-- Show inline message
+* Inline validation
 
 ---
 
-## 🔹 Failed Action
+## 🔹 Failure
 
-- Show toast:
-    - “Something went wrong”
+* Toast message:
+
+  * “Something went wrong”
 
 ---
 
-# 📌 13. Keyboard Flow
+# 📌 15. Keyboard Flow
 
 ---
 
 ## 🔹 Basic:
 
-- Enter → submit input
+* Enter → submit input
 
 ---
 
 ## 🔹 Future:
 
-- `Ctrl + K` → open command palette
+* Ctrl + K → command palette
 
 ---
 
-# 📌 14. State Flow Summary
+# 📌 16. State Flow Summary
 
 ---
 
-## UI State Loop:
-
-User Action  
-   ↓  
-UI Update (optimistic)  
-   ↓  
-Backend Sync  
-   ↓  
+User Action
+↓
+UI Update (optimistic)
+↓
+Backend Sync
+↓
 Final UI State
 
 ---
 
-# 📌 15. Critical UX Rules
+# 📌 17. Critical UX Rules
 
 ---
 
 ## Rule 1:
 
-👉 Always show current task
+👉 Always show active task prominently
 
 ---
 
@@ -508,16 +694,24 @@ Final UI State
 
 ## Rule 3:
 
-👉 Minimize clicks
+👉 Minimize decisions
 
 ---
 
 ## Rule 4:
 
-👉 Show feedback instantly
+👉 Keep everything in context
 
 ---
 
 ## Rule 5:
 
-👉 Avoid user confusion
+👉 Avoid visual clutter
+
+---
+
+## Rule 6:
+
+👉 Focus over features
+
+---

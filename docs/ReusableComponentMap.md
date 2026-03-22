@@ -1,7 +1,4 @@
----
-modified: 2026-03-21T12:38:00+05:30
----
-# DEVFLOW REUSABLE COMPONENT MAPPING DOCUMENT
+# DEVFLOW REUSABLE COMPONENT MAPPING DOCUMENT (FINAL)
 
 ---
 
@@ -9,39 +6,61 @@ modified: 2026-03-21T12:38:00+05:30
 
 Define:
 
-- What components you **reuse (not build)**
-- Which library handles what
-- How each maps to your features
+* Which components are **reused (not built)**
+* Which are **custom-built**
+* How libraries map to **workspace features**
 
 ---
 
 ## 🎯 Goal
 
-👉 **Maximize speed + quality by reusing proven components**
+👉 Maximize:
+
+* development speed
+* UI consistency
+* maintainability
+
+👉 Minimize:
+
+* redundant code
+* UI bugs
+* unnecessary complexity
 
 ---
 
-# 📌 2. Strategy
+# 📌 2. Core Strategy
 
 ---
 
-## 🧠 Core Rule
+## 🧠 Rule 1: Reuse by Default
 
-👉 If a component is:
+If something is:
 
-- common
-- UI-heavy
-- already solved
+* UI-heavy
+* generic
+* already solved
 
-❌ Don’t build it  
+❌ Do NOT build
 ✅ Use a library
 
 ---
 
-## 🧠 Build Only:
+## 🧠 Rule 2: Build Only What Matters
 
-- Business logic
-- App-specific components
+You only build:
+
+* business logic
+* workspace-specific UI
+* interaction behavior
+
+---
+
+## 🧠 Rule 3: Composition Over Creation
+
+👉 Build complex UI by composing:
+
+* shadcn components
+* small reusable wrappers
 
 ---
 
@@ -57,22 +76,23 @@ Define:
 
 ### Why:
 
-- Tailwind-based
-- Copy-paste components
-- Fully customizable
-- No heavy dependency
+* Tailwind-based
+* Copy-paste flexibility
+* Fully customizable
+* No runtime overhead
 
 ---
 
-## 🧱 Use for:
+## 🧱 Use For:
 
-- Buttons
-- Inputs
-- Cards
-- Dialogs
-- Dropdowns
-- Tabs
-- Progress
+* Button
+* Input
+* Card
+* Badge
+* Dropdown
+* Dialog
+* Separator
+* Progress
 
 ---
 
@@ -84,26 +104,25 @@ Define:
 
 ---
 
-### Why:
+### Use For:
 
-- Lightweight
-- Flexible
-- Perfect for task reordering
-
----
+* Task reordering
+* Drag interactions
 
 ---
 
-## ⚡ Command Palette
+---
+
+## ⚡ Command Palette (Future)
 
 👉 **cmdk**
 
 ---
 
-### Why:
+### Use For:
 
-- Fast keyboard UI
-- VS Code-like experience
+* global quick actions
+* keyboard-driven interaction
 
 ---
 
@@ -117,7 +136,14 @@ Define:
 
 ### Alternative:
 
-👉 **Novel**
+👉 Novel
+
+---
+
+### Use For:
+
+* notes workspace
+* markdown editing
 
 ---
 
@@ -127,29 +153,30 @@ Define:
 
 ---
 
-# 🧩 4.1 Dashboard Layout
+# 🧩 4.1 Workspace Layout
 
 ---
 
 ## Needed:
 
-- Grid layout
-- Panels
-- Cards
+* Panel layout
+* Split sections
+* Containers
 
 ---
 
 ## Use:
 
-👉 shadcn/ui
+👉 shadcn + Tailwind
 
 ---
 
 ## Components:
 
-- Card
-- Separator
-- Resizable Panel (optional)
+* Card
+* Separator
+* ScrollArea
+* Resizable (optional)
 
 ---
 
@@ -161,128 +188,94 @@ Define:
 
 ## Needed:
 
-- Task list
-- Task item
-- Drag reorder
-- Status indicator
+* Task list
+* Task grouping
+* Status indicators
+* Actions (done, block, edit, delete)
 
 ---
 
 ## Use:
 
-- UI → shadcn
-- Drag → dnd-kit
+* UI → shadcn
+* Drag → dnd-kit
 
 ---
 
 ## Mapping:
 
-|Feature|Tool|
-|---|---|
-|Task card|shadcn Card|
-|Status badge|shadcn Badge|
-|Drag|dnd-kit|
-|Input|shadcn Input|
+| Feature        | Tool    |
+| -------------- | ------- |
+| Task container | Card    |
+| Status badge   | Badge   |
+| Quick input    | Input   |
+| Action buttons | Button  |
+| Drag system    | dnd-kit |
 
 ---
 
 ---
 
-# ⚡ 4.3 Quick Add System
+# 🎯 4.3 Focus Panel (CENTER CORE)
 
 ---
 
 ## Needed:
 
-- Input field
-- Keyboard interaction
+* Active task display
+* Timer UI
+* Controls
+* Mini insights
 
 ---
 
 ## Use:
 
-👉 shadcn Input
+👉 shadcn + custom logic
 
 ---
 
-## Future:
+## Mapping:
 
-👉 cmdk (global input)
+| Feature        | Tool          |
+| -------------- | ------------- |
+| Timer display  | Custom        |
+| Buttons        | shadcn Button |
+| Insights cards | Card          |
 
 ---
 
 ---
 
-# ⏱️ 4.4 Timer UI
+# ⚡ 4.4 Commands / Quick Actions
 
 ---
 
 ## Needed:
 
-- Timer display
-- Buttons
+* Command list
+* Copy interaction
 
 ---
 
 ## Use:
 
-👉 shadcn Button + custom logic
-
----
-
-👉 Timer display → custom
+* UI → Card / List
+* Copy → Browser Clipboard API
 
 ---
 
 ---
 
-# ⚡ 4.5 Actions (Commands)
+# 📜 4.5 Logs System (NEW)
 
 ---
 
 ## Needed:
 
-- Command list
-- Copy interaction
-
----
-
-## Use:
-
-- UI → shadcn List / Card
-- Copy → browser API
-
----
-
----
-
-# 🧠 4.6 Notes (Markdown)
-
----
-
-## Needed:
-
-- Markdown editor
-- Preview
-
----
-
-## Use:
-
-👉 MDXEditor
-
----
-
----
-
-# 🔗 4.7 Links
-
----
-
-## Needed:
-
-- List
-- Input
+* Log list
+* Quick add input
+* Timestamp display
 
 ---
 
@@ -292,28 +285,95 @@ Define:
 
 ---
 
+## Mapping:
+
+| Feature   | Tool  |
+| --------- | ----- |
+| Log item  | Card  |
+| Input     | Input |
+| Timestamp | Text  |
+
 ---
 
-# 📊 4.8 Feedback UI
+---
+
+# 🔗 4.6 Resources System
 
 ---
 
 ## Needed:
 
-- Progress bar
-- Stats
+* Categorized resources
+* Grouped display
+* External links
 
 ---
 
 ## Use:
 
-👉 shadcn Progress
+👉 shadcn Card + Badge
+
+---
+
+## Mapping:
+
+| Feature        | Tool   |
+| -------------- | ------ |
+| Resource card  | Card   |
+| Category label | Badge  |
+| Link           | Anchor |
 
 ---
 
 ---
 
-# 📌 5. Reusable Component Layers
+# 🧠 4.7 Notes Workspace (UPGRADED)
+
+---
+
+## Needed:
+
+* File list (sidebar)
+* Editor
+* File switching
+
+---
+
+## Use:
+
+👉 MDXEditor
+
+---
+
+## Additional:
+
+* Sidebar → custom + shadcn
+* Tabs (optional minimal use)
+
+---
+
+---
+
+# 📊 4.8 Feedback & Insights
+
+---
+
+## Needed:
+
+* Progress display
+* Stats
+
+---
+
+## Use:
+
+👉 shadcn Progress + Card
+
+---
+
+---
+
+# 📌 5. Component Layers (IMPORTANT)
 
 ---
 
@@ -321,11 +381,13 @@ Define:
 
 From shadcn:
 
-- Button
-- Input
-- Card
-- Dialog
-- Badge
+* Button
+* Input
+* Card
+* Badge
+* Dialog
+* Dropdown
+* Progress
 
 ---
 
@@ -333,18 +395,15 @@ From shadcn:
 
 ## 🔹 Layer 2: Shared Components (YOU BUILD)
 
----
+Reusable across features:
 
-Examples:
-
-- TaskItem
-- ActionItem
-- LinkItem
-- TimerDisplay
-
----
-
-👉 Built using shadcn components
+* TaskItem
+* CommandItem
+* ResourceItem
+* LogItem
+* TimerDisplay
+* EmptyState
+* SectionHeader
 
 ---
 
@@ -352,31 +411,37 @@ Examples:
 
 ## 🔹 Layer 3: Feature Components
 
----
+Workspace-specific:
 
-Examples:
-
-- TaskPanel
-- NotesPanel
-- ActionsPanel
-
----
-
----
-
-## 🔹 Layer 4: Page Components
-
----
-
-Example:
-
-- DashboardPage
+* TaskPanel
+* FocusPanel
+* LogsPanel
+* ResourcesPanel
+* NotesWorkspace
 
 ---
 
 ---
 
-# 📌 6. Component Reuse Strategy
+## 🔹 Layer 4: Layout Components
+
+* DashboardLayout
+* WorkspaceGrid
+* RightSidebar
+
+---
+
+---
+
+## 🔹 Layer 5: Page Components
+
+* DashboardPage
+
+---
+
+---
+
+# 📌 6. Reuse Strategy
 
 ---
 
@@ -388,13 +453,19 @@ Example:
 
 ## Rule 2:
 
-👉 Keep components small
+👉 Extract repeated patterns early
 
 ---
 
 ## Rule 3:
 
-👉 Separate logic from UI
+👉 Keep components small and focused
+
+---
+
+## Rule 4:
+
+👉 Prefer composition over inheritance
 
 ---
 
@@ -412,26 +483,45 @@ Example:
 
 ## Rules:
 
-- No inline styles
-- No CSS chaos
-- Use utility classes
+* No inline styles
+* No large CSS files
+* Use utility-first approach
 
 ---
 
 ---
 
-# 📌 8. Avoid Rebuilding These
+# 📌 8. Interaction Patterns
 
 ---
 
-## ❌ DO NOT BUILD:
+## Standard Patterns:
 
-- Buttons
-- Inputs
-- Modals
-- Dropdowns
-- Editor
-- Drag system
+* Click → state change
+* Enter → submit
+* Hover → subtle feedback
+
+---
+
+## Feedback:
+
+* Copy → toast
+* Action → immediate UI update
+
+---
+
+---
+
+# 📌 9. Avoid Rebuilding These
+
+---
+
+❌ Buttons
+❌ Inputs
+❌ Modals
+❌ Dropdowns
+❌ Editor
+❌ Drag system
 
 ---
 
@@ -441,63 +531,70 @@ Example:
 
 ---
 
-# 📌 9. Custom Components (YOU MUST BUILD)
+# 📌 10. Custom Components (YOU MUST BUILD)
 
 ---
 
-These are core:
+Core logic components:
 
-- Task logic
-- Timer logic
-- Dashboard layout
-- State handling
+* Task logic
+* Timer system
+* Logs system
+* Notes workspace
+* Resource grouping
+* Workspace layout
 
 ---
 
 ---
 
-# 📌 10. Integration Strategy
+# 📌 11. Integration Strategy
 
 ---
 
 ## Step-by-step:
 
 1. Setup shadcn
-2. Add base UI components
-3. Build shared components
-4. Build feature components
-5. Compose dashboard
+2. Install dnd-kit
+3. Add MDXEditor
+4. Create shared components
+5. Build feature modules
+6. Compose workspace
 
 ---
 
 ---
 
-# 📌 11. Performance Consideration
+# 📌 12. Performance Considerations
 
 ---
 
-## Libraries chosen are:
+Libraries chosen are:
 
-- Lightweight
-- Fast
-- Tree-shakeable
-
----
-
-👉 No bloat
+* Lightweight
+* Tree-shakeable
+* Fast
 
 ---
 
+## Strategy:
+
+* Avoid heavy libraries
+* Lazy load editor if needed
+
 ---
 
-# 📌 12. Future Expansion
+---
+
+# 📌 13. Future Expansion
 
 ---
 
 Supports:
 
-- Command palette
-- Advanced UI
-- Animations
+* Command palette (cmdk)
+* Animations (Framer Motion)
+* Desktop wrapper (Tauri)
+* Advanced keyboard shortcuts
 
 ---

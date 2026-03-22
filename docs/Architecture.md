@@ -1,40 +1,55 @@
----
-modified: 2026-03-21T12:30:46+05:30
----
-# DEVFLOW ARCHITECTURE DOCUMENT
+# DEVFLOW ARCHITECTURE DOCUMENT (FINAL)
 
 ---
 
 # 📌 1. System Overview
 
+---
+
 ## 🎯 Goal
 
-DevFlow is a **local-first, single-user workflow system** designed to:
+DevFlow is a **local-first, single-user developer workspace system** designed to:
 
-- Resume work instantly
-- Maintain focus on a single task
-- Track real progress
+* Resume work instantly
+* Maintain focus on a single task
+* Track real development activity
+* Keep all project-related context in one place
 
 ---
 
-## 🧠 Architectural Style
+## 🧠 Core Architectural Concept
+
+👉 **Project = Workspace**
+
+A project is not a data entity alone — it is a **live working environment** that contains:
+
+* Tasks (work)
+* Timer (focus)
+* Logs (activity history)
+* Notes (knowledge)
+* Resources (context)
+* Commands (execution helpers)
+
+---
+
+## 🧩 Architectural Style
 
 👉 **Monolithic Backend + SPA Frontend**
 
-- Backend: Laravel (API + logic)
-- Frontend: React (via Inertia)
-- Database: SQLite (local)
+* Backend: Laravel (business logic + persistence)
+* Frontend: React (via Inertia)
+* Database: SQLite (local)
 
 ---
 
-## 🧩 High-Level Architecture
+## 🏗️ High-Level Architecture
 
-[ React UI (Inertia) ]  
-          ↓  
-[ Laravel Controllers ]  
-          ↓  
-[ Services / Business Logic ]  
-          ↓  
+[ React UI (Inertia) ]
+↓
+[ Laravel Controllers ]
+↓
+[ Service Layer (Business Logic) ]
+↓
 [ SQLite Database ]
 
 ---
@@ -45,85 +60,103 @@ DevFlow is a **local-first, single-user workflow system** designed to:
 
 ## 🔹 2.1 Frontend Layer (React + Inertia)
 
+---
+
 ### Responsibilities:
 
-- UI rendering
-- State management
-- User interaction
-- Calling backend routes
+* Render workspace UI
+* Manage UI state
+* Handle user interaction
+* Trigger backend operations
 
 ---
 
 ### Key Characteristics:
 
-- Component-based
-- Single-page dashboard
-- Minimal routing
+* Single-screen workspace (no navigation)
+* Component-based architecture
+* Minimal routing
+* Context-driven UI (project-based)
 
 ---
 
-### Core UI Sections:
+### Core UI Structure:
 
-Dashboard  
- ├── Project Header  
- ├── Task List  
- ├── Active Task Panel  
- ├── Timer  
- ├── Quick Actions  
- ├── Notes & Links
+Workspace
+├── Project Header
+├── Task Panel
+├── Active Task Panel
+├── Timer + Insights
+├── Right Sidebar (collapsible)
+│    ├── Quick Actions
+│    ├── Resources
+│    ├── Commands
+│    ├── Logs
+├── Notes Workspace (multi-file)
+└── Footer Stats
+
+---
+
+### UI Principle:
+
+👉 **Frontend reflects workspace state — not navigation state**
 
 ---
 
 ### Data Handling:
 
-- Uses Inertia to fetch data from Laravel
-- No direct API layer initially
+* Uses Inertia for server communication
+* No separate REST API initially
+* Receives hydrated data from Laravel
 
 ---
 
 ## 🔹 2.2 Backend Layer (Laravel)
 
+---
+
 ### Responsibilities:
 
-- Business logic
-- Data validation
-- State enforcement (rules)
-- Data persistence
+* Enforce business rules
+* Handle data validation
+* Manage state transitions
+* Persist data
+* Compute derived values
 
 ---
 
 ### Structure:
 
-Controllers  
-Services (important)  
-Models  
-Database (SQLite)
+* Controllers → thin
+* Services → core logic
+* Models → data representation
+* SQLite → storage
 
 ---
 
-### Important Design Decision:
+### Critical Design Rule:
 
-👉 **Controllers should be thin**
-
-All logic goes into:  
-👉 **Service Layer**
+👉 **All business logic lives in Service Layer**
 
 ---
 
 ## 🔹 2.3 Database Layer (SQLite)
 
+---
+
 ### Responsibilities:
 
-- Store all project data locally
-- Provide fast read/write
+* Store all project-scoped data
+* Maintain relationships
+* Provide fast local access
 
 ---
 
 ### Characteristics:
 
-- Local file-based DB
-- No external dependencies
-- Simple relational schema
+* File-based
+* Zero configuration
+* Optimized for local usage
 
 ---
 
@@ -133,28 +166,26 @@ All logic goes into:
 
 ## 🔁 Standard Flow
 
-### Example: Add Task
-
-User Action (UI)  
-   ↓  
-React Component  
-   ↓  
-Inertia Request  
-   ↓  
-Laravel Controller  
-   ↓  
-Service Layer  
-   ↓  
-Database (SQLite)  
-   ↓  
+User Action
+↓
+React Component
+↓
+Inertia Request
+↓
+Laravel Controller
+↓
+Service Layer
+↓
+Database
+↓
 Response → UI Update
 
 ---
 
 ## ⚡ Key Principle
 
-👉 **Frontend = display + interaction**  
-👉 **Backend = truth + rules**
+👉 Frontend = interaction + display
+👉 Backend = truth + enforcement
 
 ---
 
@@ -164,15 +195,19 @@ Response → UI Update
 
 ## 🧩 4.1 Project Module
 
+---
+
 ### Backend:
 
-- Handles project CRUD
-- Tracks last accessed
+* Create/update projects
+* Track last accessed project
+
+---
 
 ### Frontend:
 
-- Displays current project
-- Switches context
+* Load workspace
+* Switch project context
 
 ---
 
@@ -180,128 +215,253 @@ Response → UI Update
 
 ## 📋 4.2 Task Module (CORE)
 
+---
+
 ### Backend Responsibilities:
 
-- Enforce:
-    - single `doing` task
-    - status transitions
-    - sorting logic
+* Enforce:
+
+  * single active task (`doing`)
+  * state transitions
+  * sorting rules
+
+---
 
 ### Frontend Responsibilities:
 
-- Display tasks
-- Handle quick add
-- Trigger updates
+* Render grouped tasks
+* Handle quick add
+* Trigger task updates
 
 ---
 
-### Critical Rule Enforcement (Backend Only):
+### Critical Rule:
 
-IF new_task.status == "doing"  
-THEN reset previous "doing" task
+IF task → set to `doing`
+THEN reset previous active task
 
 ---
 
-## ⚡ 4.3 Execution Module
+---
+
+## ⏱️ 4.3 Tracking Module
+
+---
 
 ### Backend:
 
-- Store actions
+Stores:
 
-### Frontend:
-
-- Display commands
-- Copy to clipboard
-- Open links
+* started_at
+* accumulated time
 
 ---
 
-## 🧠 4.4 Context Module
+### Logic:
 
-### Backend:
-
-- Store notes + links
-
-### Frontend:
-
-- Render markdown
-- Handle quick input
-
----
-
-## ⏱️ 4.5 Tracking Module
-
-### Backend:
-
-- Store:
-    - started_at
-    - time_spent
-
----
-
-### Logic Flow:
-
-Start Timer:  
-→ store started_at  
-  
-Stop Timer:  
-→ calculate (now - started_at)  
-→ add to time_spent  
-→ clear started_at
+Start → store timestamp
+Stop → calculate duration → add to total
 
 ---
 
 ### Frontend:
 
-- Display timer
-- Trigger start/stop
+* Timer display
+* Start/Stop controls
+* Show insights:
+
+  * time today
+  * last session
+  * total time
 
 ---
 
-## 🖥️ 4.6 Dashboard Module
+---
+
+## 📜 4.4 Logs Module (NEW CORE)
+
+---
+
+### Backend:
+
+* Store logs:
+
+  * content
+  * timestamp
+  * project_id
+
+---
+
+### Characteristics:
+
+* Append-only
+* Lightweight
+* Project-scoped
+
+---
+
+### Frontend:
+
+* Quick log input
+* Display recent logs
+* Inline usage (sidebar)
+
+---
+
+---
+
+## 🧠 4.5 Notes Module (UPGRADED)
+
+---
+
+### Backend:
+
+* Store:
+
+  * multiple notes per project
+  * markdown content
+
+---
+
+### Frontend:
+
+* Multi-file system
+* Sidebar file navigation
+* Markdown editor
+
+---
+
+### Design Principle:
+
+👉 Inspired by Obsidian
+👉 Simplified (no graph/backlinks)
+
+---
+
+---
+
+## 🔗 4.6 Resources Module (REPLACES LINKS)
+
+---
+
+### Backend:
+
+* Store:
+
+  * title
+  * url
+  * type (docs / figma / api / etc)
+
+---
+
+### Frontend:
+
+* Group by category
+* Display in sidebar
+* Quick access
+
+---
+
+---
+
+## ⚡ 4.7 Commands Module
+
+---
+
+### Backend:
+
+* Store project commands
+
+---
+
+### Frontend:
+
+* Copy command
+* Display list
+
+---
+
+---
+
+## 🖥️ 4.8 Workspace Module (Dashboard)
+
+---
 
 ### Role:
 
-- Aggregates all modules
-
-### Backend:
-
-- Fetch:
-    - last project
-    - tasks
-    - stats
-
-### Frontend:
-
-- Render everything in one screen
+👉 Central aggregator of all modules
 
 ---
 
-## ⚡ 4.7 Quick Add Module
-
 ### Backend:
 
-- Create entries (task, note, link)
+* Fetch:
 
-### Frontend:
-
-- Instant input UI
-- Keyboard-based submission
+  * project data
+  * tasks
+  * logs
+  * notes
+  * resources
+  * stats
 
 ---
 
-## 📊 4.8 Feedback Module
+### Frontend:
+
+* Render full workspace
+* Maintain layout structure
+
+---
+
+### Critical Rule:
+
+👉 **No navigation — only workspace rendering**
+
+---
+
+---
+
+## ⚡ 4.9 Quick Add Module
+
+---
 
 ### Backend:
 
-- Compute:
-    - tasks completed today
-    - time spent today
-    - progress %
+* Create:
+
+  * tasks
+  * logs
+  * resources
+  * notes
+
+---
 
 ### Frontend:
 
-- Display metrics
+* Instant input
+* Keyboard-based actions
+
+---
+
+---
+
+## 📊 4.10 Feedback Module
+
+---
+
+### Backend:
+
+Compute:
+
+* tasks completed today
+* time spent today
+* total time
+
+---
+
+### Frontend:
+
+* Display minimal insights (no dashboards)
 
 ---
 
@@ -311,27 +471,32 @@ Stop Timer:
 
 ## 🔹 Types of State
 
-### 1. Server State (Laravel)
+---
 
-- Projects
-- Tasks
-- Notes
-- Links
+### 1. Server State (Source of Truth)
+
+* Projects
+* Tasks
+* Logs
+* Notes
+* Resources
+* Commands
 
 ---
 
-### 2. UI State (React)
+### 2. UI State (Temporary)
 
-- Current input
-- Selected task
-- Timer running (visual)
+* input fields
+* selected task
+* timer visual state
+* panel collapse state
 
 ---
 
 ## 🔹 Rule:
 
-👉 **Backend = source of truth**  
-👉 **Frontend = temporary state**
+👉 Backend = truth
+👉 Frontend = temporary state
 
 ---
 
@@ -339,23 +504,24 @@ Stop Timer:
 
 ---
 
-## Laravel Routes (Inertia)
+## Laravel Routes
 
-GET    /dashboard  
-POST   /projects  
-POST   /tasks  
-PATCH  /tasks/{id}  
-POST   /notes  
-POST   /links
+GET    /dashboard
+POST   /projects
+POST   /tasks
+PATCH  /tasks/{id}
+POST   /logs
+POST   /notes
+POST   /resources
+POST   /commands
 
 ---
 
-## Frontend Navigation
+## Frontend Routing
 
-👉 Minimal:
+👉 Single route:
 
-- Only dashboard view
-- No multi-page routing
+* /dashboard
 
 ---
 
@@ -363,27 +529,26 @@ POST   /links
 
 ---
 
-## ❌ DO NOT:
+## ❌ Avoid:
 
-- Put logic in React
-- Put logic in Controllers
-
----
-
-## ✅ DO:
-
-Put logic in:
-
-👉 **Service Layer**
+* Logic in React
+* Logic in Controllers
 
 ---
 
-### Example:
+## ✅ Use:
 
-TaskService:  
-- setTaskToDoing()  
-- resetActiveTask()  
-- sortTasks()
+👉 Service Layer
+
+---
+
+### Example Services:
+
+* TaskService
+* TimerService
+* LogService
+* ResourceService
+* NoteService
 
 ---
 
@@ -391,18 +556,17 @@ TaskService:
 
 ---
 
-## 🚫 System Limitations
+## Limitations:
 
-- No command execution
-- No file system access
+* Cannot execute commands
+* Cannot access file system
 
 ---
 
-## 🧠 Solution:
+## Solutions:
 
-- Use:
-    - copy-to-clipboard
-    - open URL
+* Copy-to-clipboard
+* URL opening
 
 ---
 
@@ -412,22 +576,21 @@ TaskService:
 
 ## Backend:
 
-- Use efficient queries
-- Avoid unnecessary joins
+* Efficient queries
+* Minimal joins
 
 ---
 
 ## Frontend:
 
-- Avoid unnecessary re-renders
-- Use memoization where needed
+* Avoid re-renders
+* Use memoization
 
 ---
 
 ## Data Strategy:
 
-- Load only current project data
-- Avoid loading all projects
+👉 Load only active project data
 
 ---
 
@@ -435,13 +598,9 @@ TaskService:
 
 ---
 
-Even though local:
-
-Prepare for future:
-
-- Separate service layer
-- Modular components
-- Clean DB schema
+* Modular services
+* Clean separation
+* Extendable schema
 
 ---
 
@@ -449,11 +608,9 @@ Prepare for future:
 
 ---
 
-Even for local:
-
-- Validate all inputs
-- Sanitize markdown content
-- Prevent injection
+* Validate inputs
+* Sanitize markdown
+* Prevent injection
 
 ---
 
@@ -461,9 +618,7 @@ Even for local:
 
 ---
 
-## Possible upgrades:
-
-- Replace SQLite → cloud DB
-- Add API layer
-- Add Tauri for system control
-- Add real-time features
+* Tauri integration (system access)
+* API layer expansion
+* Git-based logging
+* Advanced insights (in-context only)

@@ -1,47 +1,51 @@
----
-modified: 2026-03-21T12:40:30+05:30
----
-
 # 📄 SOFTWARE REQUIREMENTS SPECIFICATION (SRS)
 
 # 1. Introduction
 
-### 1.1 Purpose
+---
 
-This document defines the requirements for **DevFlow**, a local-first, project-centric workflow application designed to help developers:
+## 1.1 Purpose
 
-- Resume work instantly
-- Maintain focus on a single task
-- Track meaningful progress
+This document defines the requirements for **DevFlow**, a local-first, project-centric developer workspace application designed to:
 
-The goal is to minimize friction between **deciding and executing work**.
+* Resume work instantly
+* Maintain focus on a single task
+* Track actual development activity
+* Keep all project-related context in one place
+
+The system minimizes friction between **starting work and continuing work**.
 
 ---
 
-### 1.2 Scope
+## 1.2 Scope
 
 DevFlow is a **local web-based application** that provides:
 
-- A single-screen project workspace
-- Task management with enforced focus
-- Lightweight execution support (commands & links)
-- Context management (notes + links)
-- Time tracking for productivity awareness
+* A single-screen project workspace
+* Task management with enforced focus
+* Time tracking for work sessions
+* Activity logs (what was actually done)
+* Structured resource management (docs, figma, APIs)
+* Multi-file note system (Obsidian-inspired)
+* Command and execution helpers
 
-The system is intended for **individual developer use**.
+The system is intended for **individual developer use only**.
 
 ---
 
-### 1.3 Definitions
+## 1.3 Definitions
 
-|Term|Description|
-|---|---|
-|Project|A workspace containing tasks, actions, notes, and tracking|
-|Task|A unit of work within a project|
-|Action|A predefined command or link related to a project|
-|Context|Notes and links associated with a project|
-|Tracking|Time and activity monitoring|
-|Active Task|The task with status `doing` in the current project|
+| Term        | Description                                        |
+| ----------- | -------------------------------------------------- |
+| Project     | A workspace containing all development context     |
+| Workspace   | Active working environment of a project            |
+| Task        | A unit of work                                     |
+| Active Task | Task with status `doing`                           |
+| Log         | Record of actual work done                         |
+| Resource    | Categorized external reference (docs, figma, etc.) |
+| Command     | Copyable development command                       |
+| Note        | Markdown-based project file                        |
+| Timer       | Work session tracker                               |
 
 ---
 
@@ -53,10 +57,10 @@ The system is intended for **individual developer use**.
 
 DevFlow is a **standalone local application**:
 
-- Uses Laravel backend + React frontend
-- Stores data in SQLite
-- Runs in a browser environment
-- No dependency on external services
+* Laravel backend + React frontend (Inertia)
+* SQLite database
+* Runs entirely locally
+* No external dependencies
 
 ---
 
@@ -64,460 +68,455 @@ DevFlow is a **standalone local application**:
 
 The system provides:
 
-- Project management
-- Task tracking with focus control
-- Execution assistance (commands & links)
-- Context storage (notes + links)
-- Time tracking
-- Single-screen dashboard interaction
+* Project workspace management
+* Task-based focus system
+* Time tracking and session awareness
+* Activity logging
+* Knowledge storage (notes)
+* Resource organization
+* Command management
 
 ---
 
 ## 2.3 User Characteristics
 
-- Target User: Individual developer
-- Skill Level: Intermediate
-- Usage: Daily, short to medium sessions
+* Target: Individual developer
+* Skill level: Intermediate+
+* Usage: Daily, continuous workflow
 
 ---
 
 ## 2.4 Constraints
 
-- Cannot execute system-level commands in browser
-- Cannot access local file system directly
-- Must remain lightweight and fast
-- Must operate primarily within a single-screen UI
+* No system-level command execution
+* No direct file system access
+* Must remain single-screen
+* Must be fast and lightweight
 
 ---
 
 ## 2.5 Assumptions
 
-- User works on one primary project at a time
-- User prefers minimal interaction overhead
-- User values speed over feature richness
+* User works on one project at a time
+* User values speed over features
+* User prefers minimal UI
 
 ---
 
-# 📌 3. Functional Requirements
+# 📌 3. System Model
 
 ---
 
-## 3.1 Project Management
+## 🔥 Core Concept
+
+👉 **Project = Workspace**
+
+A project is not a list — it is a **live working environment**.
+
+---
+
+## Workspace Composition
+
+Each project contains:
+
+* Tasks (work)
+* Timer (focus)
+* Logs (actual activity)
+* Notes (knowledge)
+* Resources (context)
+* Commands (execution helpers)
+
+---
+
+## Entry Behavior
+
+* System shall open directly into the **last active project workspace**
+* No dashboard or landing page
+* No navigation required to begin work
+
+---
+
+# 📌 4. Functional Requirements
+
+---
+
+## 4.1 Project Management
+
+---
 
 ### FR-1: Create Project
 
-- User shall be able to create a new project
-- Each project must have:
-    - name
-    - status
+User shall create projects with:
+
+* name
+* status
 
 ---
 
 ### FR-2: Project Status
 
-System shall support:
-
-- active
-- paused
-- completed
+* active
+* paused
+* completed
 
 ---
 
-### FR-3: Last Active Project
+### FR-3: Auto Resume
 
 System shall:
 
-- store last accessed project
-- auto-load it on startup
+* store last accessed project
+* auto-load on startup
 
 ---
 
-## 3.2 Task Management
+## 4.2 Task Management
 
 ---
 
 ### FR-4: Add Task
 
-User shall be able to add tasks instantly (no form)
+* instant input
+* no forms
 
 ---
 
 ### FR-5: Task States
 
-Each task shall support:
-
-- todo
-- doing
-- blocked
-- done
+* todo
+* doing
+* blocked
+* done
 
 ---
 
-### FR-6: Single Active Task Constraint
+### FR-6: Single Active Task
 
-Only one task can be in `doing` state at a time
-
----
-
-### FR-7: Task State Transition
-
-When a task is set to `doing`:
-
-- previous active task shall reset
+Only one `doing` task allowed
 
 ---
 
-### FR-8: Task Sorting
+### FR-7: State Transition
 
-Tasks shall be automatically ordered:
-
-- doing → top
-- todo → middle
-- blocked → below todo
-- done → bottom
+Switching `doing` resets previous
 
 ---
 
-### 🔥 FR-9: Blocked Task Behavior (NEW)
+### FR-8: Task Actions
 
-A task in `blocked` state:
+Each task supports:
 
-- cannot be auto-selected as active
-- must remain visually separated
-- must not affect current active task
-
----
-
-## 3.3 Execution System
+* edit
+* delete
+* mark done
+* block
 
 ---
 
-### FR-10: Actions
+### FR-9: Sorting
 
-User shall be able to define project-specific actions
-
----
-
-### FR-11: Command Interaction
-
-System shall:
-
-- allow copying commands
-- allow opening URLs
+* doing → top
+* todo → middle
+* blocked → below
+* done → bottom
 
 ---
 
-### Limitation
-
-System shall NOT:
-
-- execute commands
-- access local system
+## 4.3 Time Tracking
 
 ---
 
-## 3.4 Context Management
+### FR-10: Timer Control
+
+* start / stop
 
 ---
 
-### FR-12: Notes
+### FR-11: Global Timer
+
+Only one timer at a time
+
+---
+
+### FR-12: Time Storage
+
+* started_at
+* accumulated time
+
+---
+
+### FR-13: Persistence
+
+Timer survives reload
+
+---
+
+### FR-14: Insights
+
+Display:
+
+* time today
+* last session
+* total time
+
+---
+
+## 4.4 Logs System (NEW CORE)
+
+---
+
+### FR-15: Add Log
+
+User shall record activity:
+
+* free text
+* timestamped
+
+---
+
+### FR-16: Log Scope
+
+* project-specific
+* append-only
+
+---
+
+### FR-17: Log Display
+
+* recent logs visible
+* quick add input
+
+---
+
+## 4.5 Notes System (UPGRADED)
+
+---
+
+### FR-18: Multi-file Notes
 
 System shall support:
 
-- creating notes
-- editing notes
-- Markdown formatting
+* multiple notes per project
+* file-like structure
 
 ---
 
-### FR-13: Links
+### FR-19: Note Editing
 
-System shall allow:
-
-- saving links
-- quick access
+* Markdown support
+* fast switching
 
 ---
 
-## 3.5 Tracking System
+### FR-20: Note Navigation
+
+* sidebar-style file list inside notes section
 
 ---
 
-### FR-14: Timer Control
-
-User shall be able to:
-
-- start timer
-- stop timer
+## 4.6 Resources System (REPLACES LINKS)
 
 ---
 
-### 🔥 FR-15: Timer Scope (NEW)
+### FR-21: Resource Management
 
-Only one timer can run at a time across the entire system (global timer)
+User shall store categorized resources:
 
----
-
-### FR-16: Time Storage
-
-System shall store:
-
-- `started_at` timestamp
-- accumulated time
+* Docs
+* Figma
+* APIs
+* References
 
 ---
 
-### FR-17: Time Calculation
+### FR-22: Resource Display
 
-System shall calculate time using:
-
-- timestamps (not UI loops)
-
----
-
-### 🔥 FR-18: Timer Persistence (NEW)
-
-Timer state shall persist across page reloads using stored timestamps
+* grouped by type
+* quick access
 
 ---
 
-### FR-19: Activity Summary
-
-System shall display:
-
-- time spent today
-- total time per project
-- tasks completed today
+## 4.7 Commands System
 
 ---
 
-## 3.6 Dashboard
+### FR-23: Command Storage
+
+Store project commands
 
 ---
 
-### FR-20: Single Screen Interface
+### FR-24: Interaction
 
-System shall display all core features on one screen
-
----
-
-### 🔥 FR-21: Dashboard as Primary Interface (NEW)
-
-The dashboard shall act as the single primary interface for all core interactions without requiring navigation
+* copy command
+* simple UI
 
 ---
 
-### FR-22: Current Task Highlight
-
-System shall highlight active task
+## 4.8 Dashboard (Workspace UI)
 
 ---
 
-### FR-23: Quick Actions Visibility
+### FR-25: Single Screen Interface
 
-System shall show project actions
-
----
-
-### 🔥 FR-24: Data Scope Rule (NEW)
-
-System shall load only the currently active project’s data
+All features on one screen
 
 ---
 
-## 3.7 Quick Add System
+### FR-26: Layout Structure
+
+* Left → Tasks
+* Center → Active Task + Timer
+* Right → Collapsible Panels
+* Bottom → Notes
+* Footer → Stats
 
 ---
 
-### FR-25: Instant Input
+### FR-27: Collapsible Panels
 
-User shall be able to instantly add:
+Right side panels include:
 
-- tasks
-- notes
-- links
-
----
-
-### FR-26: Keyboard Support
-
-System shall support:
-
-- Enter → add item
+* Actions
+* Resources
+* Commands
+* Logs
 
 ---
 
-### Future Enhancement
-
-- Command palette (`Ctrl + K`)
+## 4.9 Quick Add System
 
 ---
 
-## 3.8 Feedback System
+### FR-28: Instant Input
+
+* tasks
+* logs
+* notes
+* resources
 
 ---
 
-### FR-27: Progress Tracking
+# 📌 5. Validation Constraints
 
-System shall display project completion percentage
-
----
-
-### FR-28: Daily Activity
-
-System shall display:
-
-- tasks completed today
-- time spent today
+* Task title required (≤255)
+* Project name required
+* URL must be valid
 
 ---
 
-### 🔥 FR-29: Optimistic UI Updates (NEW)
+# 📌 6. Auto-Recovery Rules
 
-System shall update UI optimistically for user actions, with backend synchronization ensuring final consistency
-
----
-
-# 📌 4. Validation Constraints (NEW SECTION)
+* Multiple `doing` → fix automatically
+* Timer recalculates on reload
 
 ---
 
-- Task title:
-    - required
-    - maximum length: 255 characters
-- Project name:
-    - required
-- URL:
-    - must be valid
+# 📌 7. Non-Functional Requirements
 
 ---
 
-# 📌 5. Auto-Recovery Rules (NEW SECTION)
+## Performance
+
+* Load < 2s
+* Instant UI feedback
 
 ---
 
-System shall automatically recover from inconsistent states:
+## Usability
 
-- If multiple `doing` tasks exist:  
-    → system resets all but the most recent
-- If timer is active on reload:  
-    → system recalculates elapsed time using timestamps
-
----
-
-# 📌 6. Non-Functional Requirements
+* No navigation required
+* Minimal clicks
+* fast input
 
 ---
 
-## 6.1 Performance
+## Reliability
 
-- Load time ≤ 2 seconds
-- UI interactions must be near-instant
-
----
-
-## 6.2 Usability
-
-- Minimal clicks
-- No complex navigation
-- Single-screen interaction
+* Local persistence
+* accurate timer
 
 ---
 
-## 6.3 Reliability
+## Maintainability
 
-- Data must persist locally
-- Timer must remain accurate across reloads
-
----
-
-## 6.4 Maintainability
-
-- Modular architecture
-- Reusable components
+* modular system
+* reusable components
 
 ---
 
-## 6.5 Scalability
-
-- Must support future feature extensions
+# 📌 8. Data Requirements
 
 ---
 
-# 📌 7. Data Requirements
+## Entities
+
+* Projects
+* Tasks
+* Logs
+* Notes
+* Resources
+* Commands
 
 ---
 
-## Entities:
+## Relationships
 
-- Projects
-- Tasks
-- Actions
-- Notes
-- Links
-
----
-
-## Relationships:
-
-- One Project → Many Tasks
-- One Project → Many Actions
-- One Project → Many Notes
-- One Project → Many Links
+* Project → Tasks
+* Project → Logs
+* Project → Notes
+* Project → Resources
+* Project → Commands
 
 ---
 
-# 📌 8. System Rules
+# 📌 9. System Rules
 
 ---
 
-- Only one active task at a time
-- Only one active timer at a time
-- All data is project-scoped
-- No heavy forms
-- Single-screen priority
-- Minimal UI
+* One active task
+* One active timer
+* Project-scoped data
+* Single-screen only
+* Minimal UI
 
 ---
 
-# 📌 9. Constraints & Trade-offs
+# 📌 10. Constraints & Trade-offs
 
 ---
 
-## Constraints:
+## Constraints
 
-- No system execution
-- No file system access
-- Browser limitations
-
----
-
-## Trade-offs:
-
-- Manual time tracking
-- No automation
-- Limited execution features
+* No command execution
+* No file system access
 
 ---
 
-# 📌 10. Non-Goals (NEW SECTION)
+## Trade-offs
+
+* manual logs
+* manual tracking
+* no automation
 
 ---
 
-The following are explicitly out of scope:
-
-- Command execution
-- Multi-user system
-- Cloud synchronization
-- Automated tracking (e.g., Git integration)
+# 📌 11. Non-Goals
 
 ---
 
-# 📌 11. Future Enhancements
+* Multi-page system
+* Analytics dashboard
+* Multi-user support
+* Cloud sync
 
 ---
 
-- Git-based tracking
-- Command execution (via Tauri)
-- Command palette
-- Advanced analytics
+# 📌 12. Future Enhancements
+
+---
+
+* Git integration
+* Command execution (Tauri)
+* Advanced insights (in-context only)
+* Command palette

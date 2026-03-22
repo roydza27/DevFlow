@@ -1,7 +1,4 @@
----
-modified: 2026-03-21T12:32:48+05:30
----
-# DEVFLOW COMPONENT ARCHITECTURE DOCUMENT
+# DEVFLOW COMPONENT ARCHITECTURE DOCUMENT (FINAL)
 
 ---
 
@@ -9,11 +6,13 @@ modified: 2026-03-21T12:32:48+05:30
 
 Your component system must:
 
-- Be **modular**
-- Be **reusable**
-- Keep logic **separated from UI**
-- Prevent **deep nesting chaos**
-- Support **single-screen workflow**
+* Be **modular**
+* Be **feature-driven (workspace-based)**
+* Be **reusable across panels**
+* Keep logic **separated from UI**
+* Prevent **deep nesting**
+* Support **single-screen workflow**
+* Reflect **Project = Workspace architecture**
 
 ---
 
@@ -21,95 +20,111 @@ Your component system must:
 
 ---
 
-## 🧠 Principle 1: Feature-Based Structure (NOT type-based)
+## 🧠 Principle 1: Feature-Based Structure (Workspace-Oriented)
 
-❌ Don’t do:
+❌ Avoid type-based grouping
 
-components/  
-  buttons/  
-  cards/  
-  inputs/
+✅ Use:
 
-✅ Do:
-
-features/  
-  projects/  
-  tasks/  
-  tracking/  
-  context/
+features/
+workspace/
+tasks/
+tracking/
+logs/
+notes/
+resources/
+commands/
 
 ---
 
 ## 🧠 Principle 2: Smart vs Dumb Components
 
-- **Smart (Container)** → handles data + logic
-- **Dumb (UI)** → only renders UI
+* **Smart (Container)** → state + logic
+* **Dumb (Presentational)** → UI only
 
 ---
 
-## 🧠 Principle 3: Reusability First
+## 🧠 Principle 3: Workspace-Driven Composition
 
-Every component should:
+👉 UI is built around:
 
-- Work independently
-- Be reusable across features
+* one project
+* one workspace
+* one screen
 
 ---
 
-# 📌 3. Folder Structure (FINAL)
+## 🧠 Principle 4: Reusability First
 
-resources/js/  
-  
-├── app/  
-│   ├── layout/  
-│   ├── providers/  
-│   └── hooks/  
-  
-├── features/  
-│   ├── projects/  
-│   ├── tasks/  
-│   ├── tracking/  
-│   ├── context/  
-│   └── actions/  
-  
-├── components/  
-│   ├── ui/        (shadcn)  
-│   ├── common/  
-│   └── shared/  
-  
-├── pages/  
-│   └── dashboard/  
-  
-├── lib/  
-│   ├── utils/  
+* Components must be composable
+* Avoid duplication
+
+---
+
+# 📌 3. Folder Structure (UPDATED)
+
+resources/js/
+
+├── app/
+│   ├── layout/
+│   ├── providers/
+│   └── hooks/
+
+├── features/
+│   ├── workspace/        (core container)
+│   ├── tasks/
+│   ├── tracking/
+│   ├── logs/
+│   ├── notes/
+│   ├── resources/
+│   └── commands/
+
+├── components/
+│   ├── ui/              (shadcn)
+│   ├── shared/
+│   └── layout/
+
+├── pages/
+│   └── dashboard/
+
+├── lib/
+│   ├── utils/
 │   └── constants/
 
 ---
 
-# 📌 4. High-Level Component Tree
+# 📌 4. High-Level Component Tree (UPDATED)
 
-DashboardPage  
- ├── DashboardLayout  
- │  
- ├── ProjectHeader  
- │  
- ├── MainGrid  
- │   ├── TaskPanel  
- │   │   ├── TaskList  
- │   │   │   ├── TaskItem  
- │   │   │   └── TaskQuickAdd  
- │   │  
- │   ├── ActiveTaskPanel  
- │   │  
- │   ├── TimerPanel  
- │   │  
- │   ├── ActionsPanel  
- │   │  
- │   ├── NotesPanel  
- │   │  
- │   └── LinksPanel  
- │  
- └── FeedbackBar
+DashboardPage
+├── DashboardLayout
+│
+├── WorkspaceHeader
+│
+├── WorkspaceGrid
+│
+│   ├── TaskPanel
+│   │   ├── TaskQuickAdd
+│   │   ├── TaskGroup
+│   │   │   ├── TaskItem
+│   │
+│   ├── FocusPanel
+│   │   ├── ActiveTask
+│   │   ├── TimerDisplay
+│   │   ├── TimerControls
+│   │   └── MiniInsights
+│
+│   ├── RightSidebar
+│   │   ├── CollapsibleSection
+│   │   │   ├── QuickActionsPanel
+│   │   │   ├── ResourcesPanel
+│   │   │   ├── CommandsPanel
+│   │   │   └── LogsPanel
+│
+│   ├── NotesWorkspace
+│   │   ├── NotesSidebar
+│   │   └── NoteEditor
+│
+└── FooterStats
 
 ---
 
@@ -117,7 +132,9 @@ DashboardPage
 
 ---
 
-# 🖥️ 5.1 Dashboard Page
+# 🖥️ 5.1 Dashboard Layer
+
+---
 
 ## 👉 `DashboardPage`
 
@@ -127,15 +144,11 @@ Smart Component
 
 ### Responsibilities:
 
-- Fetch initial data (via Inertia)
-- Manage global UI state
-- Pass data to child components
+* Load workspace data via Inertia
+* Initialize project context
+* Pass data to workspace
 
 ---
-
----
-
-# 🧱 5.2 Layout Components
 
 ---
 
@@ -143,136 +156,116 @@ Smart Component
 
 ### Responsibilities:
 
-- Define main layout
-- Handle responsive structure
-- Manage grid / split panels
+* Define full-screen layout
+* Handle responsive behavior
 
 ---
 
-## 👉 `MainGrid`
+---
+
+# 🧠 5.2 Workspace Components
+
+---
+
+## 👉 `WorkspaceHeader`
 
 ### Responsibilities:
 
-- Arrange:
-    - Task panel
-    - Context panel
-    - Actions
-    - Timer
+* Display project name
+* Provide project switch (minimal)
 
 ---
 
 ---
 
-# 🧩 5.3 Project Components
-
----
-
-## 👉 `ProjectHeader`
+## 👉 `WorkspaceGrid`
 
 ### Responsibilities:
 
-- Show project name
-- Show status
-- Handle project switching (future)
+* Arrange layout:
+
+  * Left (tasks)
+  * Center (focus)
+  * Right (sidebar)
+  * Bottom (notes)
 
 ---
 
 ---
 
-# 📋 5.4 Task System Components
+# 📋 5.3 Task System Components
 
 ---
 
-## 👉 `TaskPanel`
-
-### Type:
-
-Smart
+## 👉 `TaskPanel` (Smart)
 
 ### Responsibilities:
 
-- Manage task list
-- Handle sorting
-- Pass data to TaskList
+* Manage tasks
+* Group tasks by status
+* Handle sorting
 
 ---
 
 ---
 
-## 👉 `TaskList`
-
-### Type:
-
-Dumb
+## 👉 `TaskGroup` (Dumb)
 
 ### Responsibilities:
 
-- Render list of tasks
-- Handle drag & drop (dnd-kit)
+* Render grouped tasks (doing / todo / blocked / done)
 
 ---
 
 ---
 
-## 👉 `TaskItem`
-
-### Type:
-
-Dumb
+## 👉 `TaskItem` (Dumb)
 
 ### Responsibilities:
 
-- Display:
-    - title
-    - status
-- Handle:
-    - click → change status
+* Show task title
+* Show status
+* Handle actions:
+
+  * done
+  * block
+  * edit
+  * delete
 
 ---
 
 ---
 
-## 👉 `TaskQuickAdd`
-
-### Type:
-
-Smart
+## 👉 `TaskQuickAdd` (Smart)
 
 ### Responsibilities:
 
-- Instant input
-- Submit on Enter
+* Instant input
+* Submit on Enter
 
 ---
 
 ---
 
-## 👉 `ActiveTaskPanel`
+# 🎯 5.4 Focus Components (CENTER CORE)
+
+---
+
+## 👉 `FocusPanel`
 
 ### Responsibilities:
 
-- Highlight current task
-- Show details
+* Combine active task + timer + insights
 
 ---
 
 ---
 
-# ⏱️ 5.5 Tracking Components
-
----
-
-## 👉 `TimerPanel`
-
-### Type:
-
-Smart
+## 👉 `ActiveTask`
 
 ### Responsibilities:
 
-- Show timer
-- Start / stop actions
-- Display running state
+* Display current task prominently
 
 ---
 
@@ -280,95 +273,157 @@ Smart
 
 ## 👉 `TimerDisplay`
 
-### Type:
+### Responsibilities:
 
-Dumb
+* Format and show time
+
+---
+
+---
+
+## 👉 `TimerControls`
 
 ### Responsibilities:
 
-- Format time
-- Display elapsed time
+* Start / Stop timer
 
 ---
 
 ---
 
-# ⚡ 5.6 Execution Components
-
----
-
-## 👉 `ActionsPanel`
+## 👉 `MiniInsights`
 
 ### Responsibilities:
 
-- List commands
-- Copy command
-- Open links
+Display:
+
+* time today
+* last session
+* tasks completed
 
 ---
 
 ---
 
-## 👉 `ActionItem`
+# ⚡ 5.5 Right Sidebar (MODULAR)
+
+---
+
+## 👉 `RightSidebar`
 
 ### Responsibilities:
 
-- Render single command
-- Handle copy action
+* Render collapsible sections
 
 ---
 
 ---
 
-# 🧠 5.7 Context Components
-
----
-
-## 👉 `NotesPanel`
+## 👉 `CollapsibleSection`
 
 ### Responsibilities:
 
-- Display markdown editor
-- Handle note updates
+* Expand / collapse behavior
+* Title + content wrapper
 
 ---
 
 ---
 
-## 👉 `LinksPanel`
+## 👉 `QuickActionsPanel`
 
 ### Responsibilities:
 
-- Display links
-- Add new links
+* Show quick actions
 
 ---
 
 ---
 
-## 👉 `LinkItem`
+## 👉 `CommandsPanel`
 
 ### Responsibilities:
 
-- Render link
-- Open link
+* Show commands
+* Copy command
 
 ---
 
 ---
 
-# 📊 5.8 Feedback Components
-
----
-
-## 👉 `FeedbackBar`
+## 👉 `ResourcesPanel`
 
 ### Responsibilities:
 
-- Show:
-    - time today
-    - tasks done
-    - progress %
+* Group resources:
+
+  * docs
+  * figma
+  * api
+  * reference
+
+---
+
+---
+
+## 👉 `LogsPanel`
+
+### Responsibilities:
+
+* Show recent logs
+* Quick add log
+
+---
+
+---
+
+# 🧠 5.6 Notes Workspace (BOTTOM)
+
+---
+
+## 👉 `NotesWorkspace`
+
+### Responsibilities:
+
+* Manage multi-file notes system
+
+---
+
+---
+
+## 👉 `NotesSidebar`
+
+### Responsibilities:
+
+* Display list of note files
+
+---
+
+---
+
+## 👉 `NoteEditor`
+
+### Responsibilities:
+
+* Markdown editor
+* Live editing
+
+---
+
+---
+
+# 📊 5.7 Footer
+
+---
+
+## 👉 `FooterStats`
+
+### Responsibilities:
+
+* Show:
+
+  * time today
+  * tasks completed
 
 ---
 
@@ -378,21 +433,22 @@ Dumb
 
 ---
 
-## 👉 `Input`
+## UI Components (shadcn)
 
-- Used for quick add
-
-## 👉 `Button`
-
-- Reusable actions
-
-## 👉 `Card`
-
-- UI container
-
-## 👉 `Modal` (future)
+* Button
+* Input
+* Card
+* Badge
+* Dropdown
+* Tabs (limited use)
 
 ---
+
+## Common Components
+
+* EmptyState
+* LoadingState
+* ErrorToast
 
 ---
 
@@ -400,27 +456,50 @@ Dumb
 
 ---
 
+## 👉 `useWorkspace`
+
+* Load project data
+* Manage workspace state
+
+---
+
 ## 👉 `useTasks`
 
-- Fetch tasks
-- Update tasks
-- Manage sorting
+* Manage tasks
+* Handle transitions
 
 ---
 
 ## 👉 `useTimer`
 
-- Handle timer state
-- Calculate elapsed time
+* Timer logic
+* Calculate elapsed time
 
 ---
 
-## 👉 `useProject`
+## 👉 `useLogs`
 
-- Current project
-- Last accessed logic
+* Add logs
+* Fetch logs
 
 ---
+
+## 👉 `useNotes`
+
+* Manage notes
+* Switch files
+
+---
+
+## 👉 `useResources`
+
+* Manage categorized resources
+
+---
+
+## 👉 `useCommands`
+
+* Manage command list
 
 ---
 
@@ -428,38 +507,44 @@ Dumb
 
 ---
 
-## 🔹 Global State (minimal)
+## 🔹 Server State
 
-- current project
-- active task
+* projects
+* tasks
+* logs
+* notes
+* resources
+* commands
 
 ---
 
-## 🔹 Local State
+## 🔹 UI State
 
-- input fields
-- UI toggles
+* active task
+* input values
+* sidebar collapse state
+* selected note
 
 ---
 
 ## Rule:
 
-👉 Avoid global state explosion
+👉 Keep global state minimal
 
 ---
 
 # 📌 9. Data Flow (Frontend)
 
-User Action  
-   ↓  
-Component  
-   ↓  
-Hook  
-   ↓  
-Inertia Request  
-   ↓  
-Backend  
-   ↓  
+User Action
+↓
+Component
+↓
+Hook
+↓
+Inertia Request
+↓
+Backend
+↓
 Response → UI Update
 
 ---
@@ -468,12 +553,12 @@ Response → UI Update
 
 ---
 
-## Use these directly:
+Use:
 
-- UI → shadcn/ui
-- Drag & Drop → dnd-kit
-- Command palette → cmdk
-- Markdown editor → MDXEditor
+* UI → shadcn/ui
+* Drag & Drop → dnd-kit
+* Markdown → MDXEditor
+* Command palette → cmdk (future)
 
 ---
 
@@ -481,15 +566,11 @@ Response → UI Update
 
 ---
 
-## ❌ Deep nesting
-
-## ❌ Business logic inside UI
-
-## ❌ Giant components
-
-## ❌ Repeating UI elements
-
-## ❌ Mixing concerns
+❌ Deep nesting
+❌ Business logic in UI
+❌ Huge components
+❌ Mixing workspace + feature logic
+❌ Creating multiple pages
 
 ---
 
@@ -497,8 +578,11 @@ Response → UI Update
 
 ---
 
-This structure supports:
+Supports:
 
-- Adding new panels
-- Adding new features
-- Converting to SaaS
+* Adding new sidebar panels
+* Expanding notes system
+* Adding advanced insights (in-context)
+* Converting to desktop app (Tauri)
+
+---

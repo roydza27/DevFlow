@@ -1,18 +1,17 @@
----
-modified: 2026-03-21T12:34:32+05:30
----
-# DEVFLOW API CONTRACT DOCUMENT
+# DEVFLOW API CONTRACT DOCUMENT (FINAL)
 
 ---
 
 # 📌 1. Overview
 
+---
+
 ## 🎯 Purpose
 
 Define **clear communication** between:
 
-- React (Frontend)
-- Laravel (Backend)
+* React (Frontend via Inertia)
+* Laravel (Backend)
 
 ---
 
@@ -20,18 +19,19 @@ Define **clear communication** between:
 
 👉 **REST-like + Inertia hybrid**
 
-- Uses Laravel routes
-- Returns JSON OR Inertia responses
-- Simple, predictable endpoints
+* Laravel routes
+* JSON responses for mutations
+* Inertia responses for page loads
 
 ---
 
 ## 🔑 Design Principles
 
-- Consistent structure
-- Minimal endpoints
-- No overengineering
-- Backend = source of truth
+* Minimal endpoints
+* Consistent response format
+* Backend = source of truth
+* Optimistic UI support
+* Project-scoped data
 
 ---
 
@@ -41,30 +41,34 @@ Define **clear communication** between:
 
 ## Base URL
 
-/ (local app)
+`/` (local app)
 
 ---
 
-## Response Format (STANDARD)
+## Standard Success Response
 
-{  
-  "success": true,  
-  "data": {},  
-  "message": "optional"  
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "optional"
 }
+```
 
 ---
 
-## Error Format
+## Standard Error Response
 
-{  
-  "success": false,  
-  "error": "Error message"  
+```json
+{
+  "success": false,
+  "error": "Error message"
 }
+```
 
 ---
 
-# 📌 3. Project APIs
+# 📌 3. Workspace API (ENTRY POINT)
 
 ---
 
@@ -72,250 +76,215 @@ Define **clear communication** between:
 
 ### Purpose:
 
-Load full dashboard data
+Load full workspace for last active project
 
 ---
 
 ### Response:
 
-{  
-  "project": {},  
-  "tasks": [],  
-  "actions": [],  
-  "notes": [],  
-  "links": [],  
-  "stats": {  
-    "time_today": 7200,  
-    "tasks_completed_today": 3,  
-    "progress": 0.6  
-  }  
+```json
+{
+  "project": {},
+  "tasks": [],
+  "commands": [],
+  "notes": [],
+  "resources": [],
+  "logs": [],
+  "stats": {
+    "time_today": 7200,
+    "tasks_completed_today": 3,
+    "progress": 0.6
+  }
 }
+```
 
 ---
+
+## 🔹 GET /dashboard/{project_id}
+
+### Purpose:
+
+Load specific project workspace
+
+---
+
+---
+
+# 📌 4. Project APIs
 
 ---
 
 ## 🔹 POST /projects
 
-### Purpose:
-
 Create project
 
----
-
-### Request:
-
-{  
-  "name": "DevFlow"  
+```json
+{
+  "name": "DevFlow"
 }
-
----
-
-### Response:
-
-{  
-  "success": true,  
-  "data": {  
-    "id": 1,  
-    "name": "DevFlow",  
-    "status": "active"  
-  }  
-}
-
----
+```
 
 ---
 
 ## 🔹 PATCH /projects/{id}
 
-### Purpose:
+Update:
 
-Update project status
-
----
-
-### Request:
-
-{  
-  "status": "paused"  
+```json
+{
+  "status": "paused"
 }
+```
+
+---
+
+## 🔹 GET /projects
+
+List all projects (for switcher)
 
 ---
 
 ---
 
-# 📌 4. Task APIs (CORE)
+# 📌 5. Task APIs (CORE SYSTEM)
 
 ---
 
 ## 🔹 POST /tasks
 
-### Purpose:
-
-Create task
-
----
-
-### Request:
-
-{  
-  "project_id": 1,  
-  "title": "Fix middleware bug"  
+```json
+{
+  "project_id": 1,
+  "title": "Fix middleware bug"
 }
-
----
-
-### Response:
-
-{  
-  "success": true,  
-  "data": {  
-    "id": 10,  
-    "title": "Fix middleware bug",  
-    "status": "todo"  
-  }  
-}
-
----
+```
 
 ---
 
 ## 🔹 PATCH /tasks/{id}
 
-### Purpose:
-
-Update task status
-
----
-
-### Request:
-
-{  
-  "status": "doing"  
+```json
+{
+  "status": "doing"
 }
+```
 
 ---
 
-### Backend Behavior (IMPORTANT):
+### Backend Behavior:
 
-- If status = `doing`
-    - reset previous `doing`
-
----
+* Enforce single `doing`
+* Reset previous active task
 
 ---
 
 ## 🔹 DELETE /tasks/{id}
 
-### Purpose:
-
-Delete task
-
----
-
 ---
 
 ## 🔹 GET /tasks?project_id=1
 
-### Purpose:
-
-Fetch tasks
-
 ---
 
 ---
 
-# 📌 5. Tracking APIs
+# 📌 6. Timer APIs
 
 ---
 
 ## 🔹 POST /timer/start
 
-### Purpose:
-
-Start timer
-
----
-
-### Request:
-
-{  
-  "task_id": 10  
+```json
+{
+  "task_id": 10
 }
-
----
-
-### Backend:
-
-- Set `started_at`
-
----
+```
 
 ---
 
 ## 🔹 POST /timer/stop
 
-### Purpose:
-
-Stop timer
-
----
-
-### Request:
-
-{  
-  "task_id": 10  
+```json
+{
+  "task_id": 10
 }
+```
 
 ---
 
-### Backend:
+### Backend Behavior:
 
-- Calculate duration
-- Update `time_spent`
-
----
+* Calculate duration
+* Update `time_spent`
 
 ---
 
-# 📌 6. Actions APIs
+---
+
+# 📌 7. Commands APIs (RENAMED)
 
 ---
 
-## 🔹 POST /actions
+## 🔹 POST /commands
 
-### Request:
-
-{  
-  "project_id": 1,  
-  "label": "Run server",  
-  "command": "npm run dev"  
+```json
+{
+  "project_id": 1,
+  "label": "Run Server",
+  "command": "npm run dev"
 }
+```
+
+---
+
+## 🔹 GET /commands?project_id=1
+
+---
+
+## 🔹 DELETE /commands/{id}
 
 ---
 
 ---
 
-## 🔹 GET /actions?project_id=1
+# 📌 8. Logs APIs (NEW)
 
 ---
 
-## 🔹 DELETE /actions/{id}
+## 🔹 POST /logs
+
+```json
+{
+  "project_id": 1,
+  "content": "Fixed auth bug"
+}
+```
 
 ---
 
-# 📌 7. Notes APIs
+## 🔹 GET /logs?project_id=1
+
+---
+
+## 🔹 DELETE /logs/{id} (optional future)
+
+---
+
+---
+
+# 📌 9. Notes APIs (UPGRADED)
 
 ---
 
 ## 🔹 POST /notes
 
-{  
-  "project_id": 1,  
-  "content": "# Notes here"  
+```json
+{
+  "project_id": 1,
+  "title": "api.md",
+  "content": "# API Notes"
 }
-
----
+```
 
 ---
 
@@ -327,132 +296,201 @@ Stop timer
 
 ---
 
-# 📌 8. Links APIs
+## 🔹 DELETE /notes/{id}
 
 ---
 
-## 🔹 POST /links
+---
 
-{  
-  "project_id": 1,  
-  "title": "Docs",  
-  "url": "https://example.com"  
+# 📌 10. Resources APIs (REPLACES LINKS)
+
+---
+
+## 🔹 POST /resources
+
+```json
+{
+  "project_id": 1,
+  "title": "Figma Design",
+  "url": "https://figma.com",
+  "type": "figma"
 }
+```
+
+---
+
+## 🔹 GET /resources?project_id=1
+
+---
+
+## 🔹 DELETE /resources/{id}
 
 ---
 
 ---
 
-## 🔹 GET /links?project_id=1
-
----
-
-## 🔹 DELETE /links/{id}
-
----
-
-# 📌 9. Derived Data APIs
+# 📌 11. Derived Data APIs
 
 ---
 
 ## 🔹 GET /stats?project_id=1
 
-### Response:
-
-{  
-  "time_today": 3600,  
-  "tasks_completed_today": 2,  
-  "progress": 0.5  
+```json
+{
+  "time_today": 3600,
+  "tasks_completed_today": 2,
+  "progress": 0.5
 }
+```
 
 ---
 
-# 📌 10. Validation Rules
+---
+
+# 📌 12. Validation Rules
 
 ---
 
 ## Tasks:
 
-- title required
-- status must be valid
+* title required
+* status must be valid
 
 ---
 
 ## Projects:
 
-- name required
+* name required
 
 ---
 
-## Links:
+## Notes:
 
-- valid URL
+* title required
 
 ---
 
-# 📌 11. Error Cases
+## Resources:
+
+* valid URL
+* type must be valid
+
+---
+
+---
+
+# 📌 13. Error Handling
 
 ---
 
 ## Example:
 
-{  
-  "success": false,  
-  "error": "Task not found"  
+```json
+{
+  "success": false,
+  "error": "Task not found"
 }
+```
 
 ---
 
 ## Common Errors:
 
-- Invalid ID
-- Invalid status
-- Missing fields
+* Invalid ID
+* Invalid status
+* Missing required fields
 
 ---
 
-# 📌 12. State Synchronization Strategy
+---
+
+# 📌 14. State Synchronization Strategy
 
 ---
 
 ## Rule:
 
-👉 After every mutation:
+After every mutation:
 
-- Return updated data
-- Or refetch via dashboard
+* Return updated entity
+  OR
+* Refetch via `/dashboard`
+
+---
+
+## UI Strategy:
+
+👉 Optimistic updates allowed
+👉 Backend confirms state
 
 ---
 
 ---
 
-# 📌 13. API Flow Example
+# 📌 15. API Flow Example
 
 ---
 
 ## Scenario: Start Working
 
-1. GET /dashboard  
-2. POST /tasks  
-3. PATCH /tasks/{id} → doing  
+1. GET /dashboard
+2. POST /tasks
+3. PATCH /tasks/{id} → doing
 4. POST /timer/start
+5. POST /logs (optional)
 
 ---
 
-# 📌 14. Security (Basic)
+---
+
+# 📌 16. Data Scope Rule
 
 ---
 
-- Validate all inputs
-- Sanitize markdown
-- Prevent invalid status
+👉 All APIs must be **project-scoped**
+
+* No global data leakage
+* Always filter by `project_id`
 
 ---
 
-# 📌 15. Future Extensions
+---
+
+# 📌 17. Security (Basic)
 
 ---
 
-- API versioning
-- Auth system
-- External integrations
+* Validate inputs
+* Sanitize markdown
+* Restrict invalid states
+* Prevent multiple active tasks
+
+---
+
+---
+
+# 📌 18. Performance Strategy
+
+---
+
+* Load only active project
+* Avoid over-fetching
+* Batch via `/dashboard`
+
+---
+
+---
+
+# 📌 19. Future Extensions
+
+---
+
+Prepared for:
+
+* API versioning (`/v1`)
+* Auth system
+* Git integration
+* Command execution layer (Tauri)
+* Real-time updates
+
+---

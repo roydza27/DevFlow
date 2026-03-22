@@ -1,44 +1,62 @@
----
-modified: 2026-03-21T12:33:37+05:30
----
-# DEVFLOW BUSINESS RULES DOCUMENT
+# DEVFLOW BUSINESS RULES DOCUMENT (FINAL)
 
 ---
 
 # 📌 1. Purpose
 
-This document defines the **core business logic rules** that govern how DevFlow behaves.
+This document defines the **core business logic rules** that govern DevFlow behavior.
 
 These rules ensure:
 
-- Consistency
-- Predictable behavior
-- Clean enforcement across system
+* Consistency across modules
+* Predictable system behavior
+* Clear separation between UI and logic
+* Proper enforcement of workspace-based design
 
 ---
 
-# 📌 2. Rule Classification
+# 📌 2. Core Principle
 
-All rules are grouped into:
+👉 **Project = Workspace**
 
-- Project Rules
-- Task Rules
-- Tracking Rules
-- Context Rules
-- Execution Rules
-- System Rules
+All rules operate under:
+
+* A project is a **live working environment**
+* All data is strictly **project-scoped**
+* The system is optimized for **continuous work, not navigation**
 
 ---
 
-# 📌 3. Project Rules
+# 📌 3. Rule Classification
+
+Rules are grouped into:
+
+* Project Rules
+* Task Rules
+* Tracking Rules
+* Logs Rules (NEW)
+* Notes Rules (UPGRADED)
+* Resources Rules (NEW)
+* Execution Rules
+* Workspace Rules
+* Quick Add Rules
+* Feedback Rules
+* Data Integrity Rules
+* Error Handling Rules
+* Performance Rules
+
+---
+
+# 📌 4. Project Rules
 
 ---
 
 ## 🔹 BR-P1: Project Creation
 
-- A project must have:
-    - `name`
-    - `status`
+A project must have:
+
+* `name`
+* `status`
 
 ---
 
@@ -52,32 +70,33 @@ active | paused | completed
 
 ## 🔹 BR-P3: Last Active Project
 
-- System must track:
-    - `last_accessed`
-- On app load:
-    - Automatically load most recently accessed project
+System must:
+
+* Track `last_accessed`
+* Automatically load the most recent project on app startup
 
 ---
 
-## 🔹 BR-P4: Active Project Focus
+## 🔹 BR-P4: Active Project Context
 
-- System assumes:
-    - One project is actively worked on at a time
+* Only one project is considered **active at a time**
+* System operates within that context
 
-👉 (Soft rule — not strictly enforced)
+👉 (Soft rule)
 
 ---
 
-# 📌 4. Task Rules (CORE SYSTEM)
+# 📌 5. Task Rules (CORE SYSTEM)
 
 ---
 
 ## 🔹 BR-T1: Task Creation
 
-- Task must:
-    - belong to a project
-    - have a title
-    - default to `todo`
+A task must:
+
+* belong to a project
+* have a title
+* default to `todo`
 
 ---
 
@@ -91,173 +110,255 @@ todo | doing | blocked | done
 
 ## 🔹 BR-T3: Single Active Task (CRITICAL)
 
-👉 At any time:
-
-- Only ONE task per project can have:
+👉 Only ONE task per project may have:
 
 status = doing
 
 ---
 
-## 🔹 BR-T4: Task State Transition (Doing)
+## 🔹 BR-T4: Task Activation
 
 When a task is set to `doing`:
 
-1. Find existing `doing` task
-2. Reset it to:
-
-todo
-
-3. Set new task to:
-
-doing
+1. Find existing active task
+2. Reset it to `todo`
+3. Set selected task to `doing`
 
 ---
 
 ## 🔹 BR-T5: Blocked Task Behavior
 
-- A task can be marked as `blocked`
-- Blocked tasks:
-    - should not be auto-promoted
-    - remain below `todo` in order
+* A blocked task:
+
+  * cannot become active automatically
+  * is visually separated
+  * is placed below `todo`
 
 ---
 
 ## 🔹 BR-T6: Task Completion
 
-When task is marked `done`:
+When marked `done`:
 
-- It should:
-    - move to bottom
-    - count toward daily completion
+* Move to bottom
+* Count toward daily completion metrics
 
 ---
 
 ## 🔹 BR-T7: Task Sorting Order
 
-Tasks must always be displayed in:
+Tasks must be ordered:
 
-1. doing  
-2. todo  
-3. blocked  
+1. doing
+2. todo
+3. blocked
 4. done
 
 ---
 
 ## 🔹 BR-T8: Task Ownership
 
-- A task MUST belong to exactly one project
-- No shared tasks
+* Task must belong to exactly one project
+* No cross-project sharing
 
 ---
 
-# 📌 5. Tracking Rules
+## 🔹 BR-T9: Task Time Association
+
+* Timer is associated with the **active task**
+* Time spent contributes to that task
+
+---
+
+# 📌 6. Tracking Rules
 
 ---
 
 ## 🔹 BR-TR1: Timer Start
 
-When user starts timer:
+When started:
 
-- Set:
-
-started_at = current_timestamp
+started_at = current timestamp
 
 ---
 
 ## 🔹 BR-TR2: Timer Stop
 
-When timer stops:
+On stop:
 
-1. Calculate:
-
-duration = now - started_at
-
-2. Add to:
-
-time_spent += duration
-
-3. Reset:
-
-started_at = null
+1. duration = now - started_at
+2. time_spent += duration
+3. started_at = null
 
 ---
 
 ## 🔹 BR-TR3: Timer State
 
-- If `started_at != null` → timer is running
-- If `started_at == null` → timer stopped
+* started_at ≠ null → running
+* started_at = null → stopped
 
 ---
 
-## 🔹 BR-TR4: One Active Timer (IMPORTANT)
+## 🔹 BR-TR4: Global Timer
 
-👉 Only ONE timer can run at a time:
-
-- Either:
-    - per project
-    - OR globally (recommended: global)
+👉 Only ONE timer can run at any time across system
 
 ---
 
 ## 🔹 BR-TR5: Timer Persistence
 
-- Timer must:
-    - survive page reload
-    - calculate correctly after reopen
+* Timer must survive reload
+* Duration must be recalculated dynamically
 
 ---
 
-## 🔹 BR-TR6: Daily Calculation
+## 🔹 BR-TR6: Session Awareness
 
-"Today’s work" includes:
+System must derive:
 
-- tasks completed today
-- time tracked today
-
----
-
-# 📌 6. Context Rules
+* last session duration
+* total accumulated time
 
 ---
 
-## 🔹 BR-C1: Notes
+## 🔹 BR-TR7: Daily Metrics
 
-- Notes belong to a project
-- Notes stored as Markdown
+System calculates:
 
----
-
-## 🔹 BR-C2: Links
-
-- Links must have:
-    - title
-    - url
+* time worked today
+* tasks completed today
 
 ---
 
-## 🔹 BR-C3: Context Isolation
-
-- Notes and links are **not shared across projects**
+# 📌 7. Logs Rules (NEW CORE)
 
 ---
 
-# 📌 7. Execution Rules
+## 🔹 BR-L1: Log Creation
+
+* Logs are free-text entries
+* Must be timestamped
 
 ---
 
-## 🔹 BR-E1: Actions
+## 🔹 BR-L2: Project Scope
 
-- Actions belong to a project
+* Logs belong to a single project
+* No cross-project visibility
 
 ---
 
-## 🔹 BR-E2: Command Handling
+## 🔹 BR-L3: Append-Only Behavior
 
-System must:
+* Logs are append-only
+* Editing not required (optional future)
 
-- Allow copying command
-- Allow opening URL
+---
+
+## 🔹 BR-L4: Purpose of Logs
+
+Logs represent:
+
+👉 actual work done (not planned work)
+
+---
+
+## 🔹 BR-L5: Quick Logging
+
+* Logs must support instant input
+* No forms required
+
+---
+
+# 📌 8. Notes Rules (UPGRADED)
+
+---
+
+## 🔹 BR-N1: Multi-file Notes
+
+* Multiple notes per project allowed
+* Each note acts like a file
+
+---
+
+## 🔹 BR-N2: Note Identity
+
+* Each note must have a title
+* Title acts as file name
+
+---
+
+## 🔹 BR-N3: Markdown Storage
+
+* Notes stored as raw markdown
+
+---
+
+## 🔹 BR-N4: Project Isolation
+
+* Notes are not shared across projects
+
+---
+
+## 🔹 BR-N5: Navigation
+
+* Notes must be switchable quickly
+* Sidebar-style navigation within notes section
+
+---
+
+# 📌 9. Resources Rules (REPLACES LINKS)
+
+---
+
+## 🔹 BR-R1: Resource Structure
+
+Each resource must have:
+
+* title
+* url
+* type
+
+---
+
+## 🔹 BR-R2: Resource Types
+
+Allowed:
+
+docs | figma | api | reference
+
+---
+
+## 🔹 BR-R3: Categorization
+
+* Resources must be grouped by type
+* UI displays grouped resources
+
+---
+
+## 🔹 BR-R4: Project Scope
+
+* Resources are project-specific
+* No sharing across projects
+
+---
+
+# 📌 10. Execution Rules
+
+---
+
+## 🔹 BR-E1: Commands
+
+* Commands belong to a project
+
+---
+
+## 🔹 BR-E2: Interaction
+
+System must allow:
+
+* copy command
+* open resource URL
 
 ---
 
@@ -265,61 +366,89 @@ System must:
 
 System must NOT:
 
-- Execute system commands
-- Access local filesystem
+* execute system commands
+* access local filesystem
 
 ---
 
-# 📌 8. Dashboard Rules
+# 📌 11. Workspace Rules (UI BEHAVIOR)
 
 ---
 
-## 🔹 BR-D1: Default View
+## 🔹 BR-W1: Entry Behavior
 
-On app open:
+* On app open:
 
-- Load last active project
-
----
-
-## 🔹 BR-D2: Focus Display
-
-System must show:
-
-- active task
-- task list
-- timer
-- actions
-- context
+  * load last active project
+  * show workspace immediately
 
 ---
 
-## 🔹 BR-D3: No Navigation Dependency
+## 🔹 BR-W2: Single-Screen Constraint
 
-- All core interactions must be possible:
-    - without changing pages
+* All interactions must occur on one screen
+* No page navigation required
 
 ---
 
-# 📌 9. Quick Add Rules
+## 🔹 BR-W3: Focus Priority
+
+System must prioritize:
+
+* active task
+* timer
+
+---
+
+## 🔹 BR-W4: Panel Structure
+
+Workspace includes:
+
+* Tasks (left)
+* Focus area (center)
+* Collapsible panels (right)
+* Notes (bottom)
+
+---
+
+## 🔹 BR-W5: Context Visibility
+
+All relevant project data must be:
+
+* visible
+* accessible without navigation
+
+---
+
+# 📌 12. Quick Add Rules
 
 ---
 
 ## 🔹 BR-Q1: Instant Input
 
-- Input should:
-    - submit on Enter
-    - require no form
+* Submit on Enter
+* No form UI required
 
 ---
 
-## 🔹 BR-Q2: Minimal Fields
+## 🔹 BR-Q2: Minimal Data
 
-- Only essential data required
+* Only essential fields required
 
 ---
 
-# 📌 10. Feedback Rules
+## 🔹 BR-Q3: Supported Inputs
+
+Quick add supports:
+
+* tasks
+* logs
+* notes
+* resources
+
+---
+
+# 📌 13. Feedback Rules
 
 ---
 
@@ -333,75 +462,112 @@ progress = completed_tasks / total_tasks
 
 System must show:
 
-- tasks completed today
-- time spent today
+* tasks completed today
+* time worked today
 
 ---
 
-# 📌 11. Data Integrity Rules
+## 🔹 BR-F3: Lightweight Insights
+
+Insights must be:
+
+* minimal
+* contextual (not dashboard)
+
+---
+
+# 📌 14. Data Integrity Rules
 
 ---
 
 ## 🔹 BR-DI1: Foreign Keys
 
-- Tasks must reference valid project
+* All entities must reference valid project
 
 ---
 
 ## 🔹 BR-DI2: Cascade Delete
 
-Deleting a project must delete:
+Deleting project must delete:
 
-- tasks
-- notes
-- links
-- actions
+* tasks
+* notes
+* resources
+* commands
+* logs
 
 ---
 
-# 📌 12. Error Handling Rules
+## 🔹 BR-DI3: Timer Consistency
+
+* Only one running timer allowed
+* Invalid states must be corrected
+
+---
+
+# 📌 15. Auto-Recovery Rules
+
+---
+
+## 🔹 BR-AR1: Multiple Active Tasks
+
+* If multiple `doing` tasks exist:
+  → keep latest, reset others
+
+---
+
+## 🔹 BR-AR2: Timer Recovery
+
+* If timer running on reload:
+  → recalculate using timestamp
+
+---
+
+# 📌 16. Error Handling Rules
 
 ---
 
 ## 🔹 BR-ER1: Invalid States
 
-- Prevent:
-    - multiple `doing` tasks
-    - invalid status values
+Prevent:
+
+* multiple active tasks
+* invalid status values
 
 ---
 
 ## 🔹 BR-ER2: Empty States
 
-If no data:
+System must guide user when:
 
-- show guidance UI
+* no project exists
+* no tasks exist
 
 ---
 
-# 📌 13. Performance Rules
+# 📌 17. Performance Rules
 
 ---
 
 ## 🔹 BR-PF1: Data Scope
 
-- Load only:
-    - active project data
+* Load only active project data
 
 ---
 
 ## 🔹 BR-PF2: UI Responsiveness
 
-- Updates must be instant
+* UI updates must be immediate
 
 ---
 
-# 📌 14. Future Rule Extensions
+# 📌 18. Future Rule Extensions
 
 ---
 
 Reserved for:
 
-- Git tracking
-- Command execution
-- Multi-user support
+* Git-based logging
+* Session tracking system
+* Command execution layer (Tauri)
+* Multi-user support

@@ -1,7 +1,4 @@
----
-modified: 2026-03-21T12:31:49+05:30
----
-# DEVFLOW DATABASE DESIGN DOCUMENT
+# DEVFLOW DATABASE DESIGN DOCUMENT (FINAL)
 
 ---
 
@@ -9,10 +6,11 @@ modified: 2026-03-21T12:31:49+05:30
 
 The database is designed to:
 
-- Support **project-centric architecture**
-- Enforce **task focus rules**
-- Enable **fast local operations (SQLite)**
-- Keep schema **simple and extensible**
+* Support **Project = Workspace architecture**
+* Enforce **task focus rules (single active task)**
+* Enable **fast local operations (SQLite)**
+* Keep schema **simple, modular, and extensible**
+* Support **logs, notes, resources, and commands as core systems**
 
 ---
 
@@ -22,10 +20,11 @@ The database is designed to:
 
 ### Reasons:
 
-- Local-first (no setup)
-- Lightweight
-- Fast for small datasets
-- Perfect for single-user system
+* Local-first (no setup required)
+* Lightweight and fast
+* File-based storage
+* Ideal for single-user environment
+* Minimal operational overhead
 
 ---
 
@@ -35,20 +34,22 @@ The database is designed to:
 
 ## Core Entities:
 
-Projects  
-Tasks  
-Actions  
-Notes  
-Links
+Projects
+Tasks
+Commands (renamed from Actions)
+Notes (multi-file system)
+Resources (replaces Links)
+Logs (NEW core entity)
 
 ---
 
 ## Relationships:
 
-Project → Tasks (1:N)  
-Project → Actions (1:N)  
-Project → Notes (1:N)  
-Project → Links (1:N)
+Project → Tasks (1:N)
+Project → Commands (1:N)
+Project → Notes (1:N)
+Project → Resources (1:N)
+Project → Logs (1:N)
 
 ---
 
@@ -60,20 +61,20 @@ Project → Links (1:N)
 
 projects
 
-|Field|Type|Description|
-|---|---|---|
-|id|INTEGER PK|Unique ID|
-|name|TEXT|Project name|
-|status|TEXT|active / paused / completed|
-|last_accessed|DATETIME|Last opened timestamp|
-|created_at|DATETIME|Created time|
-|updated_at|DATETIME|Updated time|
+| Field         | Type       | Description                 |
+| ------------- | ---------- | --------------------------- |
+| id            | INTEGER PK | Unique ID                   |
+| name          | TEXT       | Project name                |
+| status        | TEXT       | active / paused / completed |
+| last_accessed | DATETIME   | Last opened timestamp       |
+| created_at    | DATETIME   | Created time                |
+| updated_at    | DATETIME   | Updated time                |
 
 ---
 
 ### Constraints:
 
-- `status` must be one of allowed values
+* `status` must be one of allowed values
 
 ---
 
@@ -81,99 +82,130 @@ projects
 
 tasks
 
-|Field|Type|Description|
-|---|---|---|
-|id|INTEGER PK|Unique ID|
-|project_id|INTEGER FK|Linked project|
-|title|TEXT|Task title|
-|status|TEXT|todo / doing / blocked / done|
-|started_at|DATETIME|Timer start|
-|time_spent|INTEGER|Seconds spent|
-|order_index|INTEGER|Sorting control|
-|created_at|DATETIME|Created time|
-|updated_at|DATETIME|Updated time|
+| Field       | Type       | Description                   |
+| ----------- | ---------- | ----------------------------- |
+| id          | INTEGER PK | Unique ID                     |
+| project_id  | INTEGER FK | Linked project                |
+| title       | TEXT       | Task title                    |
+| status      | TEXT       | todo / doing / blocked / done |
+| started_at  | DATETIME   | Timer start timestamp         |
+| time_spent  | INTEGER    | Total time in seconds         |
+| order_index | INTEGER    | Sorting control               |
+| created_at  | DATETIME   | Created time                  |
+| updated_at  | DATETIME   | Updated time                  |
 
 ---
 
 ### Constraints:
 
-- FK: `project_id → projects.id`
-- `status` must be valid enum
+* FK: `project_id → projects.id`
+* `status` must be valid enum
 
 ---
 
-### Important Rule (NOT DB constraint):
+### Important Rule (Service Layer):
 
-👉 Only ONE task per project can be `doing`  
-→ enforced in **Service Layer**
+👉 Only ONE task per project can be `doing`
 
 ---
 
-# ⚡ 4.3 Actions Table
+# ⚡ 4.3 Commands Table (RENAMED)
 
-actions
+commands
 
-|Field|Type|Description|
-|---|---|---|
-|id|INTEGER PK|Unique ID|
-|project_id|INTEGER FK|Linked project|
-|label|TEXT|Action name|
-|command|TEXT|Command string|
-|created_at|DATETIME|Created time|
+| Field      | Type       | Description    |
+| ---------- | ---------- | -------------- |
+| id         | INTEGER PK | Unique ID      |
+| project_id | INTEGER FK | Linked project |
+| label      | TEXT       | Command name   |
+| command    | TEXT       | Command string |
+| created_at | DATETIME   | Created time   |
 
 ---
 
 ### Example:
 
-- "Run server"
-- "npm run dev"
+* "Run Server"
+* "npm run dev"
 
 ---
 
-# 🧠 4.4 Notes Table
+# 🧠 4.4 Notes Table (UPGRADED)
 
 notes
 
-|Field|Type|Description|
-|---|---|---|
-|id|INTEGER PK|Unique ID|
-|project_id|INTEGER FK|Linked project|
-|content|TEXT|Markdown content|
-|created_at|DATETIME|Created time|
-|updated_at|DATETIME|Updated time|
+| Field      | Type       | Description      |
+| ---------- | ---------- | ---------------- |
+| id         | INTEGER PK | Unique ID        |
+| project_id | INTEGER FK | Linked project   |
+| title      | TEXT       | Note file name   |
+| content    | TEXT       | Markdown content |
+| created_at | DATETIME   | Created time     |
+| updated_at | DATETIME   | Updated time     |
 
 ---
 
 ### Notes:
 
-- Markdown stored as raw text
+* Supports **multi-file system per project**
+* Markdown stored as raw text
+* Title acts as file identifier (e.g. "api.md")
 
 ---
 
-# 🔗 4.5 Links Table
+# 🔗 4.5 Resources Table (REPLACES LINKS)
 
-links
+resources
 
-|Field|Type|Description|
-|---|---|---|
-|id|INTEGER PK|Unique ID|
-|project_id|INTEGER FK|Linked project|
-|title|TEXT|Link title|
-|url|TEXT|URL|
-|created_at|DATETIME|Created time|
+| Field      | Type       | Description                    |
+| ---------- | ---------- | ------------------------------ |
+| id         | INTEGER PK | Unique ID                      |
+| project_id | INTEGER FK | Linked project                 |
+| title      | TEXT       | Resource name                  |
+| url        | TEXT       | Resource URL                   |
+| type       | TEXT       | docs / figma / api / reference |
+| created_at | DATETIME   | Created time                   |
 
 ---
+
+### Notes:
+
+* Replaces generic "links"
+* Categorized for better usability
+* Type is used for grouping in UI
+
+---
+
+# 📜 4.6 Logs Table (NEW CORE SYSTEM)
+
+logs
+
+| Field      | Type       | Description    |
+| ---------- | ---------- | -------------- |
+| id         | INTEGER PK | Unique ID      |
+| project_id | INTEGER FK | Linked project |
+| content    | TEXT       | Log entry text |
+| created_at | DATETIME   | Timestamp      |
+
+---
+
+### Characteristics:
+
+* Append-only system
+* Represents actual work done
+* Lightweight and fast
 
 ---
 
 # 📌 5. Relationships Diagram (Logical)
 
-Projects  
-   │  
-   ├── Tasks  
-   ├── Actions  
-   ├── Notes  
-   └── Links
+Projects
+│
+├── Tasks
+├── Commands
+├── Notes
+├── Resources
+└── Logs
 
 ---
 
@@ -183,9 +215,11 @@ Projects
 
 ## Recommended Indexes:
 
+---
+
 ### Tasks Table
 
-INDEX tasks_project_id  
+INDEX tasks_project_id
 INDEX tasks_status
 
 ---
@@ -196,31 +230,51 @@ INDEX projects_last_accessed
 
 ---
 
-### Why:
+### Logs Table
 
-- Fast project loading
-- Fast task filtering
-- Smooth dashboard performance
+INDEX logs_project_id
+INDEX logs_created_at
+
+---
+
+### Resources Table
+
+INDEX resources_project_id
+INDEX resources_type
+
+---
+
+## Why:
+
+* Fast workspace loading
+* Efficient filtering
+* Smooth UI performance
 
 ---
 
 # 📌 7. Derived Data (Important Concept)
 
+---
+
 These values are NOT stored:
 
-- Project progress %
-- Tasks completed today
-- Time spent today
+* Project progress %
+* Tasks completed today
+* Time spent today
+* Log summaries
 
 ---
 
 ## 👉 Instead:
 
-They are **computed dynamically**
+Computed dynamically
 
-### Example:
+---
 
-completed_tasks / total_tasks
+### Examples:
+
+* Progress = completed_tasks / total_tasks
+* Time today = sum of today's sessions
 
 ---
 
@@ -230,21 +284,29 @@ completed_tasks / total_tasks
 
 ## Rule 1: Single Active Task
 
-- Only one `doing` per project
-- Enforced in service layer
+* Only one `doing` task per project
+* Enforced in Service Layer
 
 ---
 
-## Rule 2: Task belongs to Project
+## Rule 2: Project-Scoped Data
 
-- FK constraint ensures integrity
+* All entities must belong to a project
+* Enforced via FK constraints
 
 ---
 
-## Rule 3: Time Tracking
+## Rule 3: Timer Logic
 
-- `started_at` NULL = timer stopped
-- `started_at` NOT NULL = timer running
+* `started_at = NULL` → timer stopped
+* `started_at ≠ NULL` → timer running
+
+---
+
+## Rule 4: Logs Immutability
+
+* Logs are append-only
+* No editing required (optional future)
 
 ---
 
@@ -254,13 +316,15 @@ completed_tasks / total_tasks
 
 ## Project Deletion:
 
-👉 When project is deleted:
+👉 When a project is deleted:
 
-- Delete all related:
-    - tasks
-    - notes
-    - links
-    - actions
+* Delete all related:
+
+  * tasks
+  * notes
+  * resources
+  * commands
+  * logs
 
 ---
 
@@ -278,9 +342,10 @@ Tables should be created in this order:
 
 1. projects
 2. tasks
-3. actions
+3. commands
 4. notes
-5. links
+5. resources
+6. logs
 
 ---
 
@@ -290,9 +355,10 @@ Tables should be created in this order:
 
 Prepared for:
 
-- Git tracking (add table later)
-- Sessions tracking
-- User system (if needed)
+* Git integration (activity logs)
+* Session-based tracking (separate table)
+* Search indexing (full-text search)
+* Multi-user support (if extended)
 
 ---
 
@@ -300,6 +366,9 @@ Prepared for:
 
 ---
 
-- No strict DB-level enforcement for:
-    - single active task
-- No full-text search (can add later)
+* No DB-level enforcement for:
+
+  * single active task
+* No full-text search (can be added later)
+* Logs are simple (no structure beyond text)
+* Notes do not support hierarchical folders (yet)

@@ -1,160 +1,368 @@
----
-modified: 2026-03-21T12:13:17+05:30
----
-# 🚀 FINAL CLEAN STRUCTURE (DEVFLOW)
-
-# 🎯 1. PRODUCT DEFINITION (CRISP)
-
-👉 **DevFlow is a local, project-centric workspace that helps you instantly resume work, focus on one task, and track progress — from a single screen.**
+# 🚀 DEVFLOW — FINAL SYSTEM DEFINITION (UPDATED)
 
 ---
+
+# 🎯 1. PRODUCT DEFINITION (REFINED)
+
+👉 **DevFlow is a local, project-centric developer workspace that helps you instantly resume work, focus on one task, and track real progress — from a single screen.**
+
+---
+
 # 🧠 2. CORE PRINCIPLE (DRIVES EVERYTHING)
 
-> “Resume → Focus → Execute → Track”
-
-Every feature maps to one of these.
+> **Resume → Focus → Execute → Log → Continue → Track**
 
 ---
-# 🧩 3. SYSTEM ARCHITECTURE (MENTAL MODEL)
 
-## 🔹 Project = Root Container
-Everything lives inside a project:
+## Key Idea:
+
+👉 Reduce friction between:
+
+* deciding what to do
+* actually doing it
+
+---
+
+# 🧩 3. SYSTEM MODEL (CORE SHIFT)
+
+## 🔹 Project = Workspace
+
+A project is NOT a list.
+
+👉 It is a **working environment**
 
 ```
-Project
- ├── Tasks (focus)
- ├── Actions (execution)
- ├── Notes + Links (context)
- └── Time Logs (tracking)
+Project (Workspace)
+ ├── Tasks        → what to do
+ ├── Timer        → work tracking
+ ├── Logs         → what you did
+ ├── Notes        → what you know
+ ├── Resources    → external context
+ └── Commands     → how to execute
 ```
 
-👉 No global clutter  
-👉 Everything is contextual
+---
+
+## 🧠 Key Property:
+
+👉 Everything is:
+
+* contextual
+* scoped
+* always visible
 
 ---
-# 🔥 4. FEATURE MODULES (CLEAN SEPARATION)
+
+# 🔥 4. FEATURE MODULES (UPDATED + REALIGNED)
 
 ---
+
 ## 🧩 MODULE 1: PROJECT SYSTEM
 
 ### Responsibilities:
-- Create project
-- Track status
-- Resume last project
+
+* Create project
+* Switch project
+* Resume last project
+
+---
 
 ### Rules:
-- Only ONE active project at a time (soft rule)
-- Store `last_accessed`
+
+* Only ONE active workspace at a time
+* Store `last_accessed`
 
 ---
+
+---
+
 ## 📋 MODULE 2: TASK SYSTEM (FOCUS ENGINE)
 
+---
+
 ### Structure:
-- Status:
-    - `todo`
-    - `doing` (only one)
-    - `blocked`
-    - `done`
 
-### Behavior:
-- Setting a task → `doing`:
-    - auto-reset previous `doing`
-    
-- Auto-sort:
-    - doing → top
-    - todo → middle
-    - blocked → below todo
-    - done → bottom
-
-
-### Goal:
-👉 Always answer: **“What am I doing now?”**
+* `todo`
+* `doing` (only ONE)
+* `blocked`
+* `done`
 
 ---
-## ⚡ MODULE 3: EXECUTION SYSTEM (QUICK ACTIONS)
 
-### Per Project:
-- Open URL
-- Copy commands
-- Show actions list
+### Behavior:
 
-### Constraint:
-- ❌ No direct system execution (browser limitation)
+* Setting a task → `doing`:
+
+  * resets previous `doing`
+
+---
+
+### Sorting:
+
+1. doing
+2. todo
+3. blocked
+4. done
+
+---
 
 ### Goal:
+
+👉 Always answer:
+
+> **“What am I working on right now?”**
+
+---
+
+---
+
+## ⏱️ MODULE 3: FOCUS & TRACKING SYSTEM
+
+---
+
+### Data:
+
+* `started_at`
+* `time_spent`
+
+---
+
+### Behavior:
+
+* Start → store timestamp
+* Stop → calculate duration
+
+---
+
+### Output:
+
+* Time today
+* Total project time
+* Last session
+
+---
+
+### Rule:
+
+👉 Timer is tied to **active task**
+
+---
+
+### Goal:
+
+👉 Track effort without friction
+
+---
+
+---
+
+## 📜 MODULE 4: LOGS SYSTEM (NEW CORE)
+
+---
+
+### Purpose:
+
+👉 Capture **actual work done**
+
+---
+
+### Behavior:
+
+* Quick add (instant input)
+* Timestamped entries
+* Append-only
+
+---
+
+### Example:
+
+* “Fixed auth bug”
+* “Setup API routes”
+
+---
+
+### Goal:
+
+👉 Answer:
+
+> **“What did I actually do?”**
+
+---
+
+---
+
+## 🧠 MODULE 5: NOTES SYSTEM (UPGRADED)
+
+---
+
+### Structure:
+
+* Multi-file notes
+* Each note = document
+
+---
+
+### Behavior:
+
+* Create note
+* Switch note
+* Edit content (Markdown)
+
+---
+
+### UX:
+
+* Sidebar file list
+* Editor workspace
+
+---
+
+### Goal:
+
+👉 Answer:
+
+> **“What do I know about this project?”**
+
+---
+
+---
+
+## 🔗 MODULE 6: RESOURCES SYSTEM (REPLACES LINKS)
+
+---
+
+### Structure:
+
+* Categorized resources:
+
+  * docs
+  * figma
+  * api
+  * reference
+
+---
+
+### Behavior:
+
+* Add resource
+* Open resource
+
+---
+
+### Goal:
+
+👉 Answer:
+
+> **“Where do I go to continue work?”**
+
+---
+
+---
+
+## ⚡ MODULE 7: COMMANDS SYSTEM (EXECUTION SUPPORT)
+
+---
+
+### Behavior:
+
+* Store commands
+* Copy to clipboard
+
+---
+
+### Constraint:
+
+* ❌ No execution (browser limitation)
+
+---
+
+### Goal:
+
 👉 Reduce setup friction
 
 ---
-## 🧠 MODULE 4: CONTEXT SYSTEM
-
-### Contains:
-- Notes (Markdown)
-- Links
-
-### Behavior:
-- Quick add (no forms)
-- Lightweight editing
-### Goal:
-👉 Keep everything in one place
 
 ---
-## ⏱️ MODULE 5: TRACKING SYSTEM
 
-### Data:
-- `started_at`
-- `time_spent`
-
-### Behavior:
-- Start → store timestamp
-- Stop → calculate duration
-
-### Output:
-- Today’s time
-- Total per project
-- Tasks completed today
-### Goal:
-👉 Awareness, not perfection
+## 🖥️ MODULE 8: WORKSPACE UI (CORE EXPERIENCE)
 
 ---
-## 🖥️ MODULE 6: DASHBOARD (CORE EXPERIENCE)
 
-👉 This is NOT a module — it’s the **entry point**
-
-### Shows:
-- Last active project
-- Current task (highlighted)
-- Task list
-- Timer
-- Quick actions
-- Progress
-
-👉 Single screen. No navigation.
+👉 This replaces “dashboard”
 
 ---
-## ⚡ MODULE 7: QUICK ADD SYSTEM
+
+### Layout:
+
+* Top → Project info
+* Left → Tasks
+* Center → Focus (task + timer)
+* Right → Sidebar (commands, resources, logs)
+* Bottom → Notes workspace
+* Footer → stats
+
+---
+
+### Rule:
+
+👉 Everything visible
+👉 No navigation
+
+---
+
+---
+
+## ⚡ MODULE 9: QUICK ADD SYSTEM
+
+---
 
 ### Supports:
-- Add task
-- Add note
-- Add link
-### Behavior:
-- Instant input → enter → saved
-### Future:
-- Command palette (`Ctrl + K`)
+
+* Tasks
+* Logs
+* Resources
+* Notes (basic)
 
 ---
-## 📊 MODULE 8: FEEDBACK SYSTEM
+
+### Behavior:
+
+* Type → Enter → saved
+
+---
+
+### Goal:
+
+👉 Zero friction input
+
+---
+
+---
+
+## 📊 MODULE 10: FEEDBACK SYSTEM
+
+---
 
 ### Displays:
-- Tasks completed today
-- Time spent today
-- Project progress %
-### Goal:
-👉 Reinforce usage habit
+
+* Time worked today
+* Tasks completed today
+* Project progress %
 
 ---
 
-# 🧱 5. DATA STRUCTURE (FINAL CLEAN)
+### Rule:
+
+👉 Lightweight insights only
+👉 NOT analytics dashboard
+
+---
+
+---
+
+# 🧱 5. DATA STRUCTURE (UPDATED)
+
+---
 
 ## Projects
 
@@ -166,6 +374,7 @@ last_accessed
 ```
 
 ---
+
 ## Tasks
 
 ```
@@ -175,11 +384,12 @@ title
 status (todo | doing | blocked | done)
 started_at
 time_spent
-order
+order_index
 ```
 
 ---
-## Actions
+
+## Commands
 
 ```
 id
@@ -189,100 +399,190 @@ command
 ```
 
 ---
+
+## Logs
+
+```
+id
+project_id
+content
+created_at
+```
+
+---
+
 ## Notes
 
 ```
 id
 project_id
+title
 content (markdown)
 ```
 
 ---
-## Links
+
+## Resources
 
 ```
 id
 project_id
 title
 url
+type (docs | figma | api | reference)
 ```
 
 ---
-# ⚙️ 6. SYSTEM RULES (IMPORTANT)
 
-These keep your app clean:
+# ⚙️ 6. SYSTEM RULES (CRITICAL)
 
 ---
+
 ## Rule 1: Single Active Task
-👉 Only ONE `doing`
+
+👉 Only ONE `doing` per project
 
 ---
-## Rule 2: Project Context Only
-👉 No global tasks / notes
+
+## Rule 2: Project Context Isolation
+
+👉 Everything belongs to a project
 
 ---
+
 ## Rule 3: Instant Interaction
-👉 No forms → only quick input
+
+👉 No forms → direct input
 
 ---
-## Rule 4: One Screen Priority
-👉 Everything accessible without navigation
+
+## Rule 4: Single Screen Priority
+
+👉 No navigation required
 
 ---
+
 ## Rule 5: Minimal UI
-👉 No panels explosion
+
+👉 No clutter, no extra panels
 
 ---
+
+## Rule 6: One Active Timer
+
+👉 Only one timer running at a time
+
+---
+
+---
+
 # 🧨 7. CONSTRAINTS (REALITY CHECK)
 
-- Browser cannot
-    - open folders
-    - run commands
+---
 
-👉 Accept and move on
+Browser limitations:
+
+* ❌ Cannot execute commands
+* ❌ Cannot access filesystem
 
 ---
+
+👉 System must work within UI-only boundaries
+
+---
+
+---
+
 # ⚠️ 8. KNOWN LIMITATIONS
 
-- Timer depends on user action
-- No automation
-- Execution is limited
-- UI can get crowded if careless
-👉 These are acceptable for MVP
+---
+
+* Timer is manual
+* Logs are manual
+* No automation (yet)
+* No sync / cloud
+* UI can become dense if uncontrolled
 
 ---
-# 🔥 9. COMPONENT STRATEGY (REUSABLE)
+
+👉 These are **intentional trade-offs**
+
+---
+
+---
+
+# 🔥 9. COMPONENT STRATEGY (UPDATED)
+
+---
 
 ## Use — don’t build:
 
-- Layout → Resizable panels
-- Task list → dnd-kit
-- UI → shadcn
-- Command palette → cmdk
-- Editor → MDXEditor
-
-👉 Everything modular = reusable
+* UI → shadcn
+* Drag → dnd-kit (later)
+* Editor → MDXEditor (later)
+* Command palette → cmdk (future)
 
 ---
+
+## Build:
+
+* Workspace layout
+* Task system
+* Timer logic
+* Logs system
+* Notes workspace
+* Resource grouping
+
+---
+
+---
+
 # 💥 10. FINAL SYSTEM VIEW
 
-👉 Your app is now: 
-- NOT a tracker
-- NOT a command tool
+---
+
+👉 DevFlow is:
+
+* NOT a todo app
+* NOT a dashboard
+* NOT a command tool
+
+---
 
 👉 It is:
 
-## **A focused workflow system that removes friction between deciding and doing work**
+## **A developer workspace that removes friction between thinking and doing**
+
+---
+
+## Workflow:
+
+Open → See task → Start → Work → Log → Continue
+
+---
 
 ---
 
 # 🧠 FINAL VERDICT
 
-## ✅ What’s strong
+---
 
-- Clear structure
-- Modular design
-- Real-world usability
-- No unnecessary features
+## ✅ Strengths
+
+* Clear mental model
+* Real-world usability
+* Modular system
+* Scalable architecture
+* No unnecessary features
+
+---
+
+## ⚠️ Watch-outs
+
+* Don’t over-add features
+* Keep UI minimal
+* Don’t break single-screen rule
+
+---
 
 ---
