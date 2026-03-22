@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import DashboardLayout from '../../app/layout/DashboardLayout'
-import TaskPanel from '../../features/tasks/TaskPanel'
-import FocusPanel from '../../features/tracking/FocusPanel'
-import RightSidebar from '../../features/workspace/RightSidebar'
-import NotesWorkspace from '../../features/notes/NotesWorkspace'
+import Workspace from '../../features/workspace/Workspace'
 
 const INITIAL_TASKS = [
   { id: 1, title: 'Refactor database schema', status: 'doing' },
@@ -83,32 +79,21 @@ export default function DashboardPage() {
   const timeToday = `${hh}h ${String(mm).padStart(2, '0')}m`
 
   return (
-    <DashboardLayout
-      leftPanel={
-        <TaskPanel
-          tasks={tasks}
-          onTaskSelect={handleTaskSelect}
-          onTaskAdd={handleTaskAdd}
-          onTaskDone={handleTaskDone}
-          onTaskBlock={handleTaskBlock}
-          onTaskEdit={handleTaskEdit}
-          onTaskDelete={handleTaskDelete}
-        />
-      }
-      centerPanel={
-        <FocusPanel
-          activeTask={activeTask}
-          elapsed={elapsed}
-          isRunning={isRunning}
-          onStart={handleStart}
-          onStop={handleStop}
-          tasksCompleted={tasksCompleted}
-          timeToday={timeToday}
-        />
-      }
-      rightPanel={<RightSidebar />}
-      notesPanel={<NotesWorkspace />}
-      footerProps={{ tasksCompleted, timeToday }}
+    <Workspace
+      tasks={tasks}
+      activeTask={activeTask}
+      elapsed={elapsed}
+      isRunning={isRunning}
+      onStart={handleStart}
+      onStop={handleStop}
+      onTaskSelect={handleTaskSelect}
+      onTaskAdd={handleTaskAdd}
+      onTaskDone={handleTaskDone}
+      onTaskBlock={handleTaskBlock}
+      onTaskEdit={handleTaskEdit}
+      onTaskDelete={handleTaskDelete}
+      tasksCompleted={tasksCompleted}
+      timeToday={timeToday}
     />
   )
 }

@@ -2,6 +2,7 @@ import Footer from '../../components/shared/Footer'
 import WorkspaceHeader from './WorkspaceHeader'
 
 export default function DashboardLayout({
+  activeTask,
   leftPanel,
   centerPanel,
   rightPanel,
@@ -10,7 +11,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
-      <WorkspaceHeader />
+      <WorkspaceHeader activeTask={activeTask} />
 
       {/* Main workspace grid */}
       <div className="flex flex-1 gap-3 p-3 overflow-hidden min-h-0">
