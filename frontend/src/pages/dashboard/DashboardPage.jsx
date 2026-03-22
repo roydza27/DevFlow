@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import DashboardLayout from '../../app/layout/DashboardLayout'
 import TaskPanel from '../../features/tasks/TaskPanel'
-import ActiveTaskPanel from '../../features/tracking/ActiveTaskPanel'
-import ActionsPanel from '../../features/actions/ActionsPanel'
-import NotesPanel from '../../features/context/NotesPanel'
-import LinksPanel from '../../features/context/LinksPanel'
+import FocusPanel from '../../features/tracking/FocusPanel'
+import RightSidebar from '../../features/workspace/RightSidebar'
+import NotesWorkspace from '../../features/notes/NotesWorkspace'
 
 const INITIAL_TASKS = [
   { id: 1, title: 'Refactor database schema', status: 'doing' },
@@ -55,15 +54,32 @@ export default function DashboardPage() {
   }
 
   function handleTaskAdd(title) {
-    const newTask = { id: Date.now(), title, status: 'todo' }
-    setTasks(prev => [...prev, newTask])
+    setTasks(prev => [...prev, { id: Date.now(), title, status: 'todo' }])
+  }
+
+  function handleTaskDone(id) {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'done' } : t))
+    setActiveTask(prev => prev?.id === id ? null : prev)
+  }
+
+  function handleTaskBlock(id) {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'blocked' } : t))
+    setActiveTask(prev => prev?.id === id ? null : prev)
+  }
+
+  function handleTaskEdit(id, title) {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t))
+    setActiveTask(prev => prev?.id === id ? { ...prev, title } : prev)
+  }
+
+  function handleTaskDelete(id) {
+    setTasks(prev => prev.filter(t => t.id !== id))
+    setActiveTask(prev => prev?.id === id ? null : prev)
   }
 
   const tasksCompleted = tasks.filter(t => t.status === 'done').length
-
-  const totalSeconds = elapsed
-  const hh = Math.floor(totalSeconds / 3600)
-  const mm = Math.floor((totalSeconds % 3600) / 60)
+  const hh = Math.floor(elapsed / 3600)
+  const mm = Math.floor((elapsed % 3600) / 60)
   const timeToday = `${hh}h ${String(mm).padStart(2, '0')}m`
 
   return (
@@ -73,20 +89,25 @@ export default function DashboardPage() {
           tasks={tasks}
           onTaskSelect={handleTaskSelect}
           onTaskAdd={handleTaskAdd}
+          onTaskDone={handleTaskDone}
+          onTaskBlock={handleTaskBlock}
+          onTaskEdit={handleTaskEdit}
+          onTaskDelete={handleTaskDelete}
         />
       }
       centerPanel={
-        <ActiveTaskPanel
+        <FocusPanel
           activeTask={activeTask}
           elapsed={elapsed}
           isRunning={isRunning}
           onStart={handleStart}
           onStop={handleStop}
+          tasksCompleted={tasksCompleted}
+          timeToday={timeToday}
         />
       }
-      rightPanel={<ActionsPanel />}
-      notesPanel={<NotesPanel />}
-      linksPanel={<LinksPanel />}
+      rightPanel={<RightSidebar />}
+      notesPanel={<NotesWorkspace />}
       footerProps={{ tasksCompleted, timeToday }}
     />
   )

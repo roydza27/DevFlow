@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
 
-export default function ActionItem({ action }) {
+export default function CommandItem({ command }) {
   const [copied, setCopied] = useState(false)
 
   function handleCopy() {
-    navigator.clipboard.writeText(action.command).then(() => {
+    navigator.clipboard.writeText(command.command).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     })
@@ -14,8 +14,8 @@ export default function ActionItem({ action }) {
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright transition-colors group">
       <div className="flex flex-col gap-0.5 min-w-0">
-        <span className="text-xs text-outline font-label">{action.label}</span>
-        <code className="text-sm text-tertiary font-mono truncate">{action.command}</code>
+        <span className="text-xs text-outline font-label">{command.label}</span>
+        <code className="text-sm text-tertiary font-mono truncate">{command.command}</code>
       </div>
       <button
         onClick={handleCopy}
