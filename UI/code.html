@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevFlow | Focused Developer Environment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-bright": "#31394d",
+                        "surface-container-high": "#222a3d",
+                        "on-error-container": "#ffdad6",
+                        "surface": "#0b1326",
+                        "surface-dim": "#0b1326",
+                        "on-secondary-container": "#aeb9d0",
+                        "surface-variant": "#2d3449",
+                        "error": "#ffb4ab",
+                        "surface-container": "#171f33",
+                        "secondary": "#bcc7de",
+                        "inverse-primary": "#494bd6",
+                        "error-container": "#93000a",
+                        "on-secondary": "#263143",
+                        "on-surface-variant": "#c7c4d8",
+                        "surface-container-highest": "#2d3449",
+                        "surface-tint": "#c0c1ff",
+                        "primary-fixed": "#e1e0ff",
+                        "surface-container-lowest": "#060e20",
+                        "tertiary": "#4edea3",
+                        "on-primary-fixed": "#07006c",
+                        "tertiary-container": "#006e4b",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "secondary-fixed": "#d8e3fb",
+                        "on-background": "#dae2fd",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-tertiary-container": "#67f4b7",
+                        "on-tertiary-fixed": "#002113",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-primary-container": "#d9d8ff",
+                        "inverse-on-surface": "#283044",
+                        "inverse-surface": "#dae2fd",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "primary": "#c0c1ff",
+                        "outline": "#918fa1",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "on-tertiary": "#003824",
+                        "surface-container-low": "#131b2e",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#111c2d",
+                        "secondary-container": "#3e495d",
+                        "on-primary": "#1000a9",
+                        "primary-container": "#4b4dd8",
+                        "on-surface": "#dae2fd",
+                        "background": "#0b1326",
+                        "outline-variant": "#464555"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            font-family: 'Inter', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+<!-- Sparse TopBar -->
+<header class="bg-[#0b1326] text-[#c0c1ff] font-['Space_Grotesk'] text-sm docked full-width top-0 border-b border-[#464555]/10 flex justify-between items-center w-full px-8 h-16 z-40">
+<div class="text-xl font-bold tracking-tight">DevFlow</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined cursor-pointer text-[#c7c4d8]/50 hover:text-[#c0c1ff] transition-colors duration-200" data-icon="settings">settings</span>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<!-- Task List (Left) -->
+<aside class="bg-[#0b1326] w-72 flex flex-col h-full border-r border-[#464555]/10 shrink-0">
+<div class="p-8">
+<h2 class="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-[#c7c4d8]/40 mb-6">Project Alpha</h2>
+<div class="relative mb-10">
+<input class="w-full bg-transparent border-b border-outline-variant/30 focus:border-tertiary outline-none py-2 text-sm text-on-surface-variant transition-all duration-200 placeholder:text-outline-variant/30" placeholder="New Task..." type="text"/>
+</div>
+<div class="space-y-8 overflow-y-auto hide-scrollbar">
+<!-- Section: Doing -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-[9px] uppercase tracking-widest text-tertiary font-bold">Doing</span>
+</div>
+<div class="border-l-2 border-tertiary pl-4 py-1">
+<p class="text-xs font-medium text-on-surface">Refactor database schema</p>
+</div>
+</div>
+<!-- Section: Todo -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-[9px] uppercase tracking-widest text-outline/50">Todo</span>
+</div>
+<div class="space-y-4">
+<div class="group flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/30"></span>
+<p class="text-xs text-on-surface-variant group-hover:text-on-surface transition-colors">Update API documentation</p>
+</div>
+<div class="group flex items-center gap-3">
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/30"></span>
+<p class="text-xs text-on-surface-variant group-hover:text-on-surface transition-colors">Fix auth middleware bug</p>
+</div>
+</div>
+</div>
+<!-- Section: Blocked -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-[9px] uppercase tracking-widest text-error/60">Blocked</span>
+</div>
+<div class="flex items-center gap-3 opacity-40">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<p class="text-xs text-on-surface-variant">Deploy to staging</p>
+</div>
+</div>
+<!-- Section: Done -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-[9px] uppercase tracking-widest text-outline/30">Done</span>
+</div>
+<div class="flex items-center gap-3 opacity-20">
+<span class="w-1.5 h-1.5 rounded-full bg-on-secondary-container"></span>
+<p class="text-xs text-on-surface-variant">Initialize repo</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Focus Zone -->
+<section class="flex-1 flex flex-col overflow-hidden bg-surface relative">
+<div class="flex-1 flex flex-col items-center justify-center p-12 text-center">
+<div class="max-w-3xl w-full">
+<h1 class="font-headline text-7xl font-bold text-on-surface leading-[1.1] mb-12 tracking-tight">
+                        Refactor database schema
+                    </h1>
+<div class="mb-16">
+<div class="font-headline text-8xl font-light tracking-tighter text-primary/40 leading-none">02:45:12</div>
+</div>
+<div class="flex justify-center gap-6">
+<button class="bg-surface-container-highest/50 border border-outline-variant/20 text-on-surface px-10 py-4 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-200 hover:bg-surface-bright active:scale-95 flex items-center gap-3">
+<span class="material-symbols-outlined text-sm" data-icon="pause" style="font-variation-settings: 'FILL' 1;">pause</span>
+                            Pause
+                        </button>
+<button class="bg-tertiary/10 border border-tertiary/30 text-tertiary px-10 py-4 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-200 hover:bg-tertiary/20 active:scale-95 flex items-center gap-3">
+<span class="material-symbols-outlined text-sm" data-icon="stop" style="font-variation-settings: 'FILL' 1;">stop</span>
+                            Complete
+                        </button>
+</div>
+</div>
+</div>
+<!-- Bottom Context Panel -->
+<div class="h-72 border-t border-outline-variant/10 bg-[#0b1326] p-12 flex gap-24">
+<div class="flex-1">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-outline/50">Project Context</h3>
+</div>
+<textarea class="w-full h-32 bg-transparent border-none resize-none focus:ring-0 text-sm font-body text-on-surface-variant/80 leading-relaxed placeholder:text-outline/20" placeholder="Notes...">- Migration script needs testing on local MySQL instance.
+- Ensure all foreign keys are indexed.
+- Next: Update repository patterns to match new schema.</textarea>
+</div>
+<div class="w-72 shrink-0">
+<h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-outline/50 mb-6">Resources</h3>
+<ul class="space-y-4">
+<li><a class="text-xs text-primary/60 hover:text-primary transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-[14px]" data-icon="link">link</span> Figma Design Docs</a>
+</li>
+<li><a class="text-xs text-primary/60 hover:text-primary transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-[14px]" data-icon="link">link</span> API Endpoints Specification</a>
+</li>
+<li><a class="text-xs text-primary/60 hover:text-primary transition-colors flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-[14px]" data-icon="link">link</span> DBER Diagram</a>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- Quick Actions (Right) -->
+<aside class="w-64 bg-[#0b1326] border-l border-outline-variant/10 flex flex-col p-8">
+<h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-outline/50 mb-8">Quick Actions</h3>
+<div class="space-y-4">
+<button class="w-full text-left group flex flex-col gap-1 py-3 border-b border-outline-variant/10 hover:border-primary/30 transition-all">
+<span class="text-[9px] text-outline/40 uppercase tracking-tighter">Develop</span>
+<code class="text-xs text-tertiary/70 group-hover:text-tertiary transition-colors">npm run dev</code>
+</button>
+<button class="w-full text-left group flex flex-col gap-1 py-3 border-b border-outline-variant/10 hover:border-primary/30 transition-all">
+<span class="text-[9px] text-outline/40 uppercase tracking-tighter">Git Branch</span>
+<code class="text-xs text-tertiary/70 group-hover:text-tertiary transition-colors">feature/db-refactor</code>
+</button>
+<button class="w-full text-left group flex flex-col gap-1 py-3 border-b border-outline-variant/10 hover:border-primary/30 transition-all">
+<span class="text-[9px] text-outline/40 uppercase tracking-tighter">Test</span>
+<code class="text-xs text-tertiary/70 group-hover:text-tertiary transition-colors">npm run test:unit</code>
+</button>
+<button class="w-full text-left group flex flex-col gap-1 py-3 border-b border-outline-variant/10 hover:border-primary/30 transition-all">
+<span class="text-[9px] text-outline/40 uppercase tracking-tighter">Docker</span>
+<code class="text-xs text-tertiary/70 group-hover:text-tertiary transition-colors">compose up -d</code>
+</button>
+</div>
+<div class="mt-auto pt-8">
+<div class="flex items-center gap-4 opacity-30">
+<span class="material-symbols-outlined text-sm" data-icon="terminal">terminal</span>
+<div>
+<p class="text-[9px] font-bold uppercase tracking-widest">Environment</p>
+<p class="text-[9px]">v1.0.4 stable</p>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Minimal Footer -->
+<footer class="bg-[#060e20] text-[#c7c4d8]/40 font-['Inter'] text-[9px] tracking-[0.2em] uppercase border-t border-[#464555]/10 fixed bottom-0 w-full flex justify-between items-center px-8 h-10 z-50">
+<div class="flex gap-10">
+<span>Uptime: <span class="text-tertiary/60">99.9%</span></span>
+<span>Focus: <span class="text-tertiary/60">2h 14m</span></span>
+<span>Tasks: <span class="text-tertiary/60">8/12</span></span>
+</div>
+<div class="flex items-center gap-10">
+<span>Progress: <span class="text-tertiary/60">42%</span></span>
+<span>DevFlow Kinetic Engine</span>
+</div>
+</footer>
+</body></html>
