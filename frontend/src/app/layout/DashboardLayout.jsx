@@ -16,6 +16,7 @@ export default function DashboardLayout({
   projects,
   currentProject,
   onProjectSwitch,
+  onCreateProject,
   activeTask,
   leftPanel,
   centerPanel,
@@ -106,6 +107,7 @@ export default function DashboardLayout({
         projects={projects}
         currentProject={currentProject}
         onProjectSwitch={onProjectSwitch}
+        onCreateProject={onCreateProject}
         activeTask={activeTask}
       />
 

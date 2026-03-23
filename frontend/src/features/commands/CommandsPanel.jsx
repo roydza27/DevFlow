@@ -2,15 +2,7 @@ import { useState } from 'react'
 import CommandItem from './CommandItem'
 import Input from '../../components/ui/Input'
 
-const INITIAL_COMMANDS = [
-  { id: 1, label: 'Develop', command: 'npm run dev' },
-  { id: 2, label: 'Git Branch', command: 'feature/db-refactor' },
-  { id: 3, label: 'Test', command: 'npm run test:unit' },
-  { id: 4, label: 'Docker', command: 'compose up -d' },
-]
-
-export default function CommandsPanel({ onLog, showAdd, onAddDone }) {
-  const [commands, setCommands] = useState(INITIAL_COMMANDS)
+export default function CommandsPanel({ commands = [], onAdd, onDelete, onLog, showAdd, onAddDone }) {
   const [labelInput, setLabelInput] = useState('')
   const [cmdInput, setCmdInput] = useState('')
 
@@ -18,9 +10,7 @@ export default function CommandsPanel({ onLog, showAdd, onAddDone }) {
     const cmd = cmdInput.trim()
     const label = labelInput.trim() || cmd
     if (!cmd) return
-    const newCmd = { id: Date.now(), label, command: cmd }
-    setCommands(prev => [...prev, newCmd])
-    onLog?.({ message: `Command added: ${label}`, type: 'info' })
+    onAdd?.(label, cmd)
     setLabelInput('')
     setCmdInput('')
     onAddDone?.()
@@ -33,12 +23,6 @@ export default function CommandsPanel({ onLog, showAdd, onAddDone }) {
     }
   }
 
-  function handleDelete(id) {
-    const cmd = commands.find(c => c.id === id)
-    setCommands(prev => prev.filter(c => c.id !== id))
-    if (cmd) onLog?.({ message: `Command removed: ${cmd.label}`, type: 'warning' })
-  }
-
   function handleCopy(cmd) {
     onLog?.({ message: `Copied: ${cmd.command}`, type: 'info' })
   }
@@ -49,7 +33,7 @@ export default function CommandsPanel({ onLog, showAdd, onAddDone }) {
         <p className="text-xs text-outline">No commands yet</p>
       )}
       {commands.map(cmd => (
-        <CommandItem key={cmd.id} command={cmd} onDelete={handleDelete} onCopy={handleCopy} />
+        <CommandItem key={cmd.id} command={cmd} onDelete={() => onDelete?.(cmd.id)} onCopy={handleCopy} />
       ))}
       {showAdd && (
         <div className="flex flex-col gap-1 mt-1">

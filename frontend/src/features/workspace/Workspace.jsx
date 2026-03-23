@@ -8,6 +8,7 @@ export default function Workspace({
   projects,
   currentProject,
   onProjectSwitch,
+  onCreateProject,
   tasks,
   activeTask,
   elapsed,
@@ -24,24 +25,36 @@ export default function Workspace({
   timeToday,
   logs,
   onLog,
+  notes,
+  onNoteNew,
+  onNoteChange,
+  onNoteRename,
+  onNoteDelete,
+  commands,
+  onCommandAdd,
+  onCommandDelete,
+  resources,
+  onResourceAdd,
+  onResourceDelete,
 }) {
-  const taskSectionProps = {
-    tasks,
-    onTaskSelect,
-    onTaskAdd,
-    onTaskDone,
-    onTaskBlock,
-    onTaskEdit,
-    onTaskDelete,
-  }
-
   return (
     <DashboardLayout
       projects={projects}
       currentProject={currentProject}
       onProjectSwitch={onProjectSwitch}
+      onCreateProject={onCreateProject}
       activeTask={activeTask}
-      leftPanel={<TaskSection {...taskSectionProps} />}
+      leftPanel={
+        <TaskSection
+          tasks={tasks}
+          onTaskSelect={onTaskSelect}
+          onTaskAdd={onTaskAdd}
+          onTaskDone={onTaskDone}
+          onTaskBlock={onTaskBlock}
+          onTaskEdit={onTaskEdit}
+          onTaskDelete={onTaskDelete}
+        />
+      }
       centerPanel={
         <FocusPanel
           activeTask={activeTask}
@@ -53,8 +66,28 @@ export default function Workspace({
           timeToday={timeToday}
         />
       }
-      rightPanel={<RightSidebar logs={logs} onLog={onLog} />}
-      notesPanel={<NotesSection onLog={onLog} />}
+      rightPanel={
+        <RightSidebar
+          logs={logs}
+          onLog={onLog}
+          commands={commands}
+          onCommandAdd={onCommandAdd}
+          onCommandDelete={onCommandDelete}
+          resources={resources}
+          onResourceAdd={onResourceAdd}
+          onResourceDelete={onResourceDelete}
+        />
+      }
+      notesPanel={
+        <NotesSection
+          key={currentProject?.id}
+          notes={notes}
+          onNew={onNoteNew}
+          onChange={onNoteChange}
+          onRename={onNoteRename}
+          onDelete={onNoteDelete}
+        />
+      }
       footerProps={{ tasksCompleted, timeToday }}
     />
   )

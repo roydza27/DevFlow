@@ -4,7 +4,16 @@ import CommandsPanel from '../commands/CommandsPanel'
 import ResourcesPanel from '../resources/ResourcesPanel'
 import LogsPanel from '../logs/LogsPanel'
 
-export default function RightSidebar({ logs = [], onLog }) {
+export default function RightSidebar({
+  logs = [],
+  onLog,
+  commands = [],
+  onCommandAdd,
+  onCommandDelete,
+  resources = [],
+  onResourceAdd,
+  onResourceDelete,
+}) {
   const [showAddCmd, setShowAddCmd] = useState(false)
   const [showAddRes, setShowAddRes] = useState(false)
   const [showAddLog, setShowAddLog] = useState(false)
@@ -17,6 +26,9 @@ export default function RightSidebar({ logs = [], onLog }) {
         isAdding={showAddCmd}
       >
         <CommandsPanel
+          commands={commands}
+          onAdd={onCommandAdd}
+          onDelete={onCommandDelete}
           onLog={onLog}
           showAdd={showAddCmd}
           onAddDone={() => setShowAddCmd(false)}
@@ -31,6 +43,9 @@ export default function RightSidebar({ logs = [], onLog }) {
         isAdding={showAddRes}
       >
         <ResourcesPanel
+          resources={resources}
+          onAdd={onResourceAdd}
+          onDelete={onResourceDelete}
           onLog={onLog}
           showAdd={showAddRes}
           onAddDone={() => setShowAddRes(false)}

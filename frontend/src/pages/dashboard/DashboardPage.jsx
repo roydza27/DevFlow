@@ -1,195 +1,129 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Workspace from '../../features/workspace/Workspace'
-
-const PROJECTS = [
-  {
-    id: 1,
-    name: 'DevFlow',
-    tasks: [
-      { id: 1, title: 'Refactor database schema', status: 'doing' },
-      { id: 2, title: 'Update API documentation', status: 'todo' },
-      { id: 3, title: 'Fix auth middleware bug', status: 'todo' },
-      { id: 4, title: 'Deploy to staging', status: 'blocked' },
-      { id: 5, title: 'Initialize repo', status: 'done' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Monolith API',
-    tasks: [
-      { id: 10, title: 'Set up Express routes', status: 'doing' },
-      { id: 11, title: 'Add JWT auth middleware', status: 'todo' },
-      { id: 12, title: 'Write unit tests', status: 'todo' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Design System',
-    tasks: [
-      { id: 20, title: 'Create token library', status: 'todo' },
-      { id: 21, title: 'Build component storybook', status: 'todo' },
-    ],
-  },
-]
-
-function buildProjectState(project) {
-  const tasks = project.tasks
-  return {
-    tasks,
-    activeTask: tasks.find(t => t.status === 'doing') || null,
-  }
-}
-
-function formatTimestamp() {
-  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
+import { useWorkspaceStore, useActiveProject } from '../../store/useWorkspaceStore'
 
 export default function DashboardPage() {
-  const [currentProjectId, setCurrentProjectId] = useState(PROJECTS[0].id)
-  const [projectData, setProjectData] = useState(() => {
-    const map = {}
-    PROJECTS.forEach(p => {
-      map[p.id] = buildProjectState(p)
-    })
-    return map
-  })
-  const [elapsed, setElapsed] = useState(0)
-  const [isRunning, setIsRunning] = useState(false)
+  const {
+    projects,
+    activeProjectId,
+    createProject,
+    switchProject,
+    addTask,
+    selectTask,
+    markTaskDone,
+    markTaskBlocked,
+    editTask,
+    deleteTask,
+    startTimer,
+    stopTimer,
+    addNote,
+    updateNote,
+    renameNote,
+    deleteNote,
+    addCommand,
+    deleteCommand,
+    addResource,
+    deleteResource,
+    addLog,
+  } = useWorkspaceStore()
+
+  const project = useActiveProject()
+
+  // ── timer display ─────────────────────────────────────────────────────────
+  const timer = project?.timer
+  const isRunning = !!timer?.startedAt
+  const [displayElapsed, setDisplayElapsed] = useState(0)
   const intervalRef = useRef(null)
-  const [logs, setLogs] = useState([
-    { id: 1, message: 'Workspace initialized', type: 'success', timestamp: formatTimestamp() },
-  ])
 
-  const addLog = useCallback(({ message, type = 'info' }) => {
-    setLogs(prev => [{ id: Date.now(), message, type, timestamp: formatTimestamp() }, ...prev])
-  }, [])
-
-  const currentProject = PROJECTS.find(p => p.id === currentProjectId)
-  const { tasks, activeTask } = projectData[currentProjectId]
-
-  function updateProject(id, updater) {
-    setProjectData(prev => ({ ...prev, [id]: updater(prev[id]) }))
-  }
-
-  // Reset timer when active task or project changes
   useEffect(() => {
     clearInterval(intervalRef.current)
-    setIsRunning(false)
-    setElapsed(0)
-  }, [activeTask?.id, currentProjectId])
+    if (!timer) { setDisplayElapsed(0); return }
 
-  // Cleanup on unmount
-  useEffect(() => () => clearInterval(intervalRef.current), [])
+    if (isRunning && timer.startedAt) {
+      const acc = timer.accumulated
+      const startedAt = timer.startedAt
+      setDisplayElapsed(acc + Math.floor((Date.now() - startedAt) / 1000))
+      intervalRef.current = setInterval(() => {
+        setDisplayElapsed(acc + Math.floor((Date.now() - startedAt) / 1000))
+      }, 1000)
+    } else {
+      setDisplayElapsed(timer.accumulated)
+    }
+    return () => clearInterval(intervalRef.current)
+  }, [activeProjectId, isRunning]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function handleProjectSwitch(projectId) {
-    clearInterval(intervalRef.current)
-    setIsRunning(false)
-    setElapsed(0)
-    const project = PROJECTS.find(p => p.id === projectId)
-    if (project) addLog({ message: `Switched to project: ${project.name}`, type: 'info' })
-    setCurrentProjectId(projectId)
-  }
+  // ── derived ───────────────────────────────────────────────────────────────
+  const tasks = project?.tasks ?? []
+  const activeTask = tasks.find(t => t.status === 'doing') ?? null
+  const tasksCompleted = tasks.filter(t => t.status === 'done').length
 
+  const hh = Math.floor(displayElapsed / 3600)
+  const mm = Math.floor((displayElapsed % 3600) / 60)
+  const timeToday = `${hh}h ${String(mm).padStart(2, '0')}m`
+
+  // ── handlers ──────────────────────────────────────────────────────────────
   function handleStart() {
-    if (isRunning) return
-    setIsRunning(true)
-    if (activeTask) addLog({ message: `Timer started: ${activeTask.title}`, type: 'success' })
-    intervalRef.current = setInterval(() => setElapsed(s => s + 1), 1000)
+    if (!activeTask || isRunning) return
+    startTimer(activeProjectId)
   }
 
   function handleStop() {
-    clearInterval(intervalRef.current)
-    setIsRunning(false)
-    if (activeTask) addLog({ message: `Timer stopped: ${activeTask.title}`, type: 'info' })
+    stopTimer(activeProjectId)
   }
 
-  function handleTaskSelect(task) {
-    if (task.status === 'done' || task.status === 'blocked') return
-    updateProject(currentProjectId, prev => ({
-      ...prev,
-      tasks: prev.tasks.map(t => {
-        if (t.id === task.id) return { ...t, status: 'doing' }
-        if (t.status === 'doing') return { ...t, status: 'todo' }
-        return t
-      }),
-      activeTask: { ...task, status: 'doing' },
-    }))
-    addLog({ message: `Active: ${task.title}`, type: 'info' })
+  function handleLog({ message, type = 'info' }) {
+    addLog(activeProjectId, message, type)
   }
 
-  function handleTaskAdd(title) {
-    updateProject(currentProjectId, prev => ({
-      ...prev,
-      tasks: [...prev.tasks, { id: Date.now(), title, status: 'todo' }],
-    }))
-    addLog({ message: `Task created: ${title}`, type: 'info' })
+  if (!project) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-surface text-on-surface">
+        <div className="text-center">
+          <p className="text-outline mb-3">No workspace found.</p>
+          <button
+            onClick={() => createProject('My Workspace')}
+            className="px-4 py-2 bg-primary text-on-primary rounded text-sm"
+          >
+            Create your first workspace
+          </button>
+        </div>
+      </div>
+    )
   }
-
-  function handleTaskDone(id) {
-    const task = projectData[currentProjectId].tasks.find(t => t.id === id)
-    updateProject(currentProjectId, prev => ({
-      ...prev,
-      tasks: prev.tasks.map(t => t.id === id ? { ...t, status: 'done' } : t),
-      activeTask: prev.activeTask?.id === id ? null : prev.activeTask,
-    }))
-    if (task) addLog({ message: `Done: ${task.title}`, type: 'success' })
-  }
-
-  function handleTaskBlock(id) {
-    const task = projectData[currentProjectId].tasks.find(t => t.id === id)
-    updateProject(currentProjectId, prev => ({
-      ...prev,
-      tasks: prev.tasks.map(t => t.id === id ? { ...t, status: 'blocked' } : t),
-      activeTask: prev.activeTask?.id === id ? null : prev.activeTask,
-    }))
-    if (task) addLog({ message: `Blocked: ${task.title}`, type: 'warning' })
-  }
-
-  function handleTaskEdit(id, title) {
-    updateProject(currentProjectId, prev => ({
-      ...prev,
-      tasks: prev.tasks.map(t => t.id === id ? { ...t, title } : t),
-      activeTask: prev.activeTask?.id === id ? { ...prev.activeTask, title } : prev.activeTask,
-    }))
-    addLog({ message: `Task renamed: ${title}`, type: 'info' })
-  }
-
-  function handleTaskDelete(id) {
-    const task = projectData[currentProjectId].tasks.find(t => t.id === id)
-    updateProject(currentProjectId, prev => ({
-      ...prev,
-      tasks: prev.tasks.filter(t => t.id !== id),
-      activeTask: prev.activeTask?.id === id ? null : prev.activeTask,
-    }))
-    if (task) addLog({ message: `Task deleted: ${task.title}`, type: 'warning' })
-  }
-
-  const tasksCompleted = tasks.filter(t => t.status === 'done').length
-  const hh = Math.floor(elapsed / 3600)
-  const mm = Math.floor((elapsed % 3600) / 60)
-  const timeToday = `${hh}h ${String(mm).padStart(2, '0')}m`
 
   return (
     <Workspace
-      projects={PROJECTS}
-      currentProject={currentProject}
-      onProjectSwitch={handleProjectSwitch}
+      projects={projects}
+      currentProject={project}
+      onProjectSwitch={switchProject}
+      onCreateProject={createProject}
       tasks={tasks}
       activeTask={activeTask}
-      elapsed={elapsed}
+      elapsed={displayElapsed}
       isRunning={isRunning}
       onStart={handleStart}
       onStop={handleStop}
-      onTaskSelect={handleTaskSelect}
-      onTaskAdd={handleTaskAdd}
-      onTaskDone={handleTaskDone}
-      onTaskBlock={handleTaskBlock}
-      onTaskEdit={handleTaskEdit}
-      onTaskDelete={handleTaskDelete}
+      onTaskSelect={t => selectTask(activeProjectId, t.id)}
+      onTaskAdd={title => addTask(activeProjectId, title)}
+      onTaskDone={id => markTaskDone(activeProjectId, id)}
+      onTaskBlock={id => markTaskBlocked(activeProjectId, id)}
+      onTaskEdit={(id, title) => editTask(activeProjectId, id, title)}
+      onTaskDelete={id => deleteTask(activeProjectId, id)}
       tasksCompleted={tasksCompleted}
       timeToday={timeToday}
-      logs={logs}
-      onLog={addLog}
+      logs={project.logs ?? []}
+      onLog={handleLog}
+      notes={project.notes ?? []}
+      onNoteNew={() => addNote(activeProjectId)}
+      onNoteChange={(noteId, content) => updateNote(activeProjectId, noteId, content)}
+      onNoteRename={(noteId, title) => renameNote(activeProjectId, noteId, title)}
+      onNoteDelete={noteId => deleteNote(activeProjectId, noteId)}
+      commands={project.commands ?? []}
+      onCommandAdd={(label, command) => addCommand(activeProjectId, label, command)}
+      onCommandDelete={id => deleteCommand(activeProjectId, id)}
+      resources={project.resources ?? []}
+      onResourceAdd={(title, url, type) => addResource(activeProjectId, title, url, type)}
+      onResourceDelete={id => deleteResource(activeProjectId, id)}
     />
   )
 }

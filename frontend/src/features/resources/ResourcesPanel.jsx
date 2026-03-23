@@ -1,16 +1,9 @@
 import { useState } from 'react'
 import ResourceItem from './ResourceItem'
 
-const INITIAL_RESOURCES = [
-  { id: 1, title: 'Figma Design Docs', url: '#', type: 'Figma' },
-  { id: 2, title: 'API Endpoints Spec', url: '#', type: 'API' },
-  { id: 3, title: 'DB ER Diagram', url: '#', type: 'Docs' },
-]
-
 const TYPES = ['Docs', 'API', 'Figma', 'Reference']
 
-export default function ResourcesPanel({ onLog, showAdd, onAddDone }) {
-  const [resources, setResources] = useState(INITIAL_RESOURCES)
+export default function ResourcesPanel({ resources = [], onAdd, onDelete, onLog, showAdd, onAddDone }) {
   const [titleInput, setTitleInput] = useState('')
   const [urlInput, setUrlInput] = useState('')
   const [typeInput, setTypeInput] = useState('Docs')
@@ -18,10 +11,7 @@ export default function ResourcesPanel({ onLog, showAdd, onAddDone }) {
   function handleAdd() {
     const title = titleInput.trim()
     if (!title) return
-    const url = urlInput.trim() || '#'
-    const newResource = { id: Date.now(), title, url, type: typeInput }
-    setResources(prev => [...prev, newResource])
-    onLog?.({ message: `Resource added: ${title}`, type: 'info' })
+    onAdd?.(title, urlInput.trim(), typeInput)
     setTitleInput('')
     setUrlInput('')
     setTypeInput('Docs')
@@ -33,12 +23,6 @@ export default function ResourcesPanel({ onLog, showAdd, onAddDone }) {
     if (e.key === 'Escape') { setTitleInput(''); setUrlInput(''); setTypeInput('Docs'); onAddDone?.() }
   }
 
-  function handleDelete(id) {
-    const res = resources.find(r => r.id === id)
-    setResources(prev => prev.filter(r => r.id !== id))
-    if (res) onLog?.({ message: `Resource removed: ${res.title}`, type: 'warning' })
-  }
-
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-col gap-1 overflow-y-auto hide-scrollbar max-h-36">
@@ -46,7 +30,7 @@ export default function ResourcesPanel({ onLog, showAdd, onAddDone }) {
           <p className="text-xs text-outline">No resources yet</p>
         )}
         {resources.map(r => (
-          <ResourceItem key={r.id} resource={r} onDelete={handleDelete} />
+          <ResourceItem key={r.id} resource={r} onDelete={() => onDelete?.(r.id)} />
         ))}
       </div>
       {showAdd && (

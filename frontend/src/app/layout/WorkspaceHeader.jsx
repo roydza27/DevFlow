@@ -1,23 +1,48 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Layers } from 'lucide-react'
+import { ChevronDown, Layers, Plus, Check } from 'lucide-react'
 
-export default function WorkspaceHeader({ projects = [], currentProject = null, onProjectSwitch, activeTask = null }) {
+export default function WorkspaceHeader({ projects = [], currentProject = null, onProjectSwitch, onCreateProject, activeTask = null }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newName, setNewName] = useState('')
   const dropdownRef = useRef(null)
+  const inputRef = useRef(null)
 
   useEffect(() => {
     function handleClickOutside(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false)
+        setCreating(false)
+        setNewName('')
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    if (creating) inputRef.current?.focus()
+  }, [creating])
+
   function handleSelect(projectId) {
     onProjectSwitch?.(projectId)
     setDropdownOpen(false)
+    setCreating(false)
+    setNewName('')
+  }
+
+  function handleCreate() {
+    const name = newName.trim()
+    if (!name) return
+    onCreateProject?.(name)
+    setDropdownOpen(false)
+    setCreating(false)
+    setNewName('')
+  }
+
+  function handleNewKeyDown(e) {
+    if (e.key === 'Enter') handleCreate()
+    if (e.key === 'Escape') { setCreating(false); setNewName('') }
   }
 
   return (
@@ -39,7 +64,7 @@ export default function WorkspaceHeader({ projects = [], currentProject = null, 
         </button>
 
         {dropdownOpen && (
-          <div className="absolute top-full left-0 mt-1 w-48 bg-surface-container-high border border-outline-variant rounded-lg shadow-xl z-50 py-1 overflow-hidden">
+          <div className="absolute top-full left-0 mt-1 w-52 bg-surface-container-high border border-outline-variant rounded-lg shadow-xl z-50 py-1 overflow-hidden">
             {projects.map(project => (
               <button
                 key={project.id}
@@ -50,7 +75,7 @@ export default function WorkspaceHeader({ projects = [], currentProject = null, 
                     : 'text-on-surface-variant hover:bg-surface-variant hover:text-on-surface'
                 }`}
               >
-              {project.id === currentProject?.id ? (
+                {project.id === currentProject?.id ? (
                   <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                 ) : (
                   <span className="w-1.5 h-1.5 shrink-0" />
@@ -58,6 +83,38 @@ export default function WorkspaceHeader({ projects = [], currentProject = null, 
                 {project.name}
               </button>
             ))}
+
+            {/* Create new workspace */}
+            <div className="border-t border-outline-variant mt-1 pt-1 px-2 pb-1">
+              {creating ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    ref={inputRef}
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
+                    onKeyDown={handleNewKeyDown}
+                    placeholder="Workspace name…"
+                    className="flex-1 min-w-0 px-2 py-1 rounded bg-surface-container text-xs text-on-surface placeholder-outline border border-outline-variant focus:border-primary focus:outline-none font-body"
+                  />
+                  <button
+                    onClick={handleCreate}
+                    disabled={!newName.trim()}
+                    className="p-1 rounded text-tertiary hover:text-on-surface disabled:opacity-30 transition-colors"
+                    title="Create"
+                  >
+                    <Check size={13} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setCreating(true)}
+                  className="flex items-center gap-1.5 px-1 py-1 w-full text-xs text-outline hover:text-on-surface transition-colors"
+                >
+                  <Plus size={12} />
+                  New Workspace
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
