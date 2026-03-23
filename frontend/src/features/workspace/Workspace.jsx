@@ -9,6 +9,8 @@ export default function Workspace({
   currentProject,
   onProjectSwitch,
   onCreateProject,
+  onLinkFolder,
+  onUnlinkFolder,
   tasks,
   activeTask,
   elapsed,
@@ -43,6 +45,8 @@ export default function Workspace({
       currentProject={currentProject}
       onProjectSwitch={onProjectSwitch}
       onCreateProject={onCreateProject}
+      onLinkFolder={onLinkFolder}
+      onUnlinkFolder={onUnlinkFolder}
       activeTask={activeTask}
       leftPanel={
         <TaskSection

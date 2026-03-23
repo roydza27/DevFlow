@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Workspace from '../../features/workspace/Workspace'
 import { useWorkspaceStore, useActiveProject } from '../../store/useWorkspaceStore'
+import { restoreHandles } from '../../services/fileSystemService'
 
 export default function DashboardPage() {
   const {
@@ -8,6 +9,8 @@ export default function DashboardPage() {
     activeProjectId,
     createProject,
     switchProject,
+    linkFolder,
+    unlinkFolder,
     addTask,
     selectTask,
     markTaskDone,
@@ -28,6 +31,12 @@ export default function DashboardPage() {
   } = useWorkspaceStore()
 
   const project = useActiveProject()
+
+  // ── Restore folder handles from IndexedDB on startup ─────────────────────
+  useEffect(() => {
+    const projectIds = useWorkspaceStore.getState().projects.map(p => p.id)
+    restoreHandles(projectIds).catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── timer display ─────────────────────────────────────────────────────────
   const timer = project?.timer
@@ -97,6 +106,8 @@ export default function DashboardPage() {
       currentProject={project}
       onProjectSwitch={switchProject}
       onCreateProject={createProject}
+      onLinkFolder={linkFolder}
+      onUnlinkFolder={unlinkFolder}
       tasks={tasks}
       activeTask={activeTask}
       elapsed={displayElapsed}
