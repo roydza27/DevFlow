@@ -1,25 +1,52 @@
+import { useState } from 'react'
 import CollapsibleSection from '../../components/shared/CollapsibleSection'
 import CommandsPanel from '../commands/CommandsPanel'
 import ResourcesPanel from '../resources/ResourcesPanel'
 import LogsPanel from '../logs/LogsPanel'
 
-export default function RightSidebar() {
+export default function RightSidebar({ logs = [], onLog }) {
+  const [showAddCmd, setShowAddCmd] = useState(false)
+  const [showAddRes, setShowAddRes] = useState(false)
+  const [showAddLog, setShowAddLog] = useState(false)
+
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto hide-scrollbar">
-      <CollapsibleSection title="Commands">
-        <CommandsPanel />
+      <CollapsibleSection
+        title="Commands"
+        onAdd={() => setShowAddCmd(v => !v)}
+      >
+        <CommandsPanel
+          onLog={onLog}
+          showAdd={showAddCmd}
+          onAddDone={() => setShowAddCmd(false)}
+        />
       </CollapsibleSection>
 
       <div className="border-t border-outline-variant" />
 
-      <CollapsibleSection title="Resources">
-        <ResourcesPanel />
+      <CollapsibleSection
+        title="Resources"
+        onAdd={() => setShowAddRes(v => !v)}
+      >
+        <ResourcesPanel
+          onLog={onLog}
+          showAdd={showAddRes}
+          onAddDone={() => setShowAddRes(false)}
+        />
       </CollapsibleSection>
 
       <div className="border-t border-outline-variant" />
 
-      <CollapsibleSection title="Logs">
-        <LogsPanel />
+      <CollapsibleSection
+        title="Logs"
+        onAdd={() => setShowAddLog(v => !v)}
+      >
+        <LogsPanel
+          logs={logs}
+          onLog={onLog}
+          showAdd={showAddLog}
+          onAddDone={() => setShowAddLog(false)}
+        />
       </CollapsibleSection>
     </div>
   )

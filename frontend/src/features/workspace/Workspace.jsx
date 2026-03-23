@@ -22,6 +22,8 @@ export default function Workspace({
   onTaskDelete,
   tasksCompleted,
   timeToday,
+  logs,
+  onLog,
 }) {
   const taskSectionProps = {
     tasks,
@@ -51,8 +53,8 @@ export default function Workspace({
           timeToday={timeToday}
         />
       }
-      rightPanel={<RightSidebar />}
-      notesPanel={<NotesSection />}
+      rightPanel={<RightSidebar logs={logs} onLog={onLog} />}
+      notesPanel={<NotesSection onLog={onLog} />}
       footerProps={{ tasksCompleted, timeToday }}
     />
   )
