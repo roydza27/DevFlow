@@ -6,7 +6,7 @@ const INITIAL_NOTES = [
   { id: 1, title: 'Project Notes', content: '## Project Notes\n\nWrite anything here…' },
 ]
 
-export default function NotesWorkspace({ onLog }) {
+export default function NotesWorkspace({ onLog, expanded = false }) {
   const [notes, setNotes] = useState(INITIAL_NOTES)
   const [activeNoteId, setActiveNoteId] = useState(INITIAL_NOTES[0].id)
 
@@ -47,8 +47,14 @@ export default function NotesWorkspace({ onLog }) {
         onNew={handleNew}
         onRename={handleRename}
         onDelete={handleDelete}
+        expanded={expanded}
       />
-      <NoteEditor note={activeNote} onChange={handleChange} />
+      <NoteEditor
+        key={activeNote?.id ?? 'empty'}
+        note={activeNote}
+        onChange={handleChange}
+        expanded={expanded}
+      />
     </div>
   )
 }

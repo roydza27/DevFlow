@@ -26,3 +26,10 @@ body {
 .panel-label-vertical-right {
   writing-mode: vertical-rl;
 }
+
+/* Contenteditable editor placeholder */
+.note-editor[data-empty="true"]::before {
+  content: attr(data-placeholder);
+  color: rgba(145, 143, 161, 0.4);
+  pointer-events: none;
+}

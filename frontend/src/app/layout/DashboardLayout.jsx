@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import Footer from '../../components/shared/Footer'
 import WorkspaceHeader from './WorkspaceHeader'
-import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, ChevronDown, ChevronUp, NotebookPen, Timer } from 'lucide-react'
+import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, ChevronDown, ChevronUp, NotebookPen, Timer, Maximize2, Minimize2 } from 'lucide-react'
 
 const LEFT_MIN = 220
 const LEFT_MAX = 420
@@ -29,6 +29,7 @@ export default function DashboardLayout({
   const [rightCollapsed, setRightCollapsed] = useState(false)
   const [notesHeight, setNotesHeight] = useState(NOTES_DEFAULT)
   const [notesCollapsed, setNotesCollapsed] = useState(false)
+  const [notesExpanded, setNotesExpanded] = useState(false)
   const [focusCollapsed, setFocusCollapsed] = useState(false)
 
   const draggingLeft = useRef(false)
@@ -145,20 +146,22 @@ export default function DashboardLayout({
         {/* Center column: Focus + Notes stacked */}
         <main ref={centerColumnRef} className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-          {/* Focus panel — collapsible */}
-          {focusCollapsed ? (
+          {/* Focus panel: slim bar when collapsed OR when notes are expanded to center */}
+          {(focusCollapsed || notesExpanded) ? (
             <div className="flex items-center gap-3 px-4 py-2 border-b border-outline-variant shrink-0">
               <Timer size={13} className="text-outline shrink-0" />
               <span className="text-xs text-outline font-label flex-1 truncate">
                 {activeTask ? activeTask.title : 'No task'}
               </span>
-              <button
-                onClick={() => setFocusCollapsed(false)}
-                className="flex items-center gap-1 text-xs text-outline hover:text-on-surface transition-colors shrink-0"
-                title="Expand focus panel"
-              >
-                <ChevronDown size={13} />
-              </button>
+              {!notesExpanded && (
+                <button
+                  onClick={() => setFocusCollapsed(false)}
+                  className="flex items-center gap-1 text-xs text-outline hover:text-on-surface transition-colors shrink-0"
+                  title="Expand focus panel"
+                >
+                  <ChevronDown size={13} />
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex-1 overflow-hidden flex flex-col min-h-0 relative">
@@ -175,41 +178,78 @@ export default function DashboardLayout({
             </div>
           )}
 
-          {/* Notes panel — resizable + collapsible */}
-          <div
-            style={{ height: effectiveNotesHeight }}
-            className="shrink-0 flex flex-col border-t border-outline-variant overflow-hidden"
-          >
-            {/* Notes drag handle + header */}
-            {!notesCollapsed && (
-              <div
-                onMouseDown={startDragNotes}
-                className="h-1 w-full cursor-row-resize hover:bg-primary/30 transition-colors shrink-0"
-              />
-            )}
-
-            {/* Notes header bar */}
-            <div className="flex items-center justify-between px-3 py-1.5 shrink-0 border-b border-outline-variant">
-              <div className="flex items-center gap-1.5">
-                <NotebookPen size={12} className="text-outline" />
-                <span className="text-xs font-label uppercase tracking-widest text-outline">Notes</span>
+          {/* Notes panel — expanded (takes full center) OR fixed height at bottom */}
+          {notesExpanded ? (
+            <div className="flex-1 flex flex-col border-t border-outline-variant overflow-hidden min-h-0">
+              {/* Notes header */}
+              <div className="flex items-center justify-between px-3 py-1.5 shrink-0 border-b border-outline-variant">
+                <div className="flex items-center gap-1.5">
+                  <NotebookPen size={12} className="text-outline" />
+                  <span className="text-xs font-label uppercase tracking-widest text-outline">Notes</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => { setNotesExpanded(false); setFocusCollapsed(false) }}
+                    className="p-0.5 rounded text-outline hover:text-on-surface transition-colors"
+                    title="Restore focus panel"
+                  >
+                    <Minimize2 size={13} />
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => setNotesCollapsed(v => !v)}
-                className="p-0.5 rounded text-outline hover:text-on-surface transition-colors"
-                title={notesCollapsed ? 'Expand notes' : 'Collapse notes'}
-              >
-                {notesCollapsed ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-              </button>
+              {/* Notes content — full height */}
+              <div className="flex-1 overflow-hidden">
+                {React.cloneElement(notesPanel, { expanded: true })}
+              </div>
             </div>
+          ) : (
+            /* Fixed height notes at bottom */
+            <div
+              style={{ height: effectiveNotesHeight }}
+              className="shrink-0 flex flex-col border-t border-outline-variant overflow-hidden"
+            >
+              {/* Notes drag handle */}
+              {!notesCollapsed && (
+                <div
+                  onMouseDown={startDragNotes}
+                  className="h-1 w-full cursor-row-resize hover:bg-primary/30 transition-colors shrink-0"
+                />
+              )}
 
-            {/* Notes content */}
-            {!notesCollapsed && (
-              <div className="flex-1 overflow-hidden p-2">
-                {notesPanel}
+              {/* Notes header bar */}
+              <div className="flex items-center justify-between px-3 py-1.5 shrink-0 border-b border-outline-variant">
+                <div className="flex items-center gap-1.5">
+                  <NotebookPen size={12} className="text-outline" />
+                  <span className="text-xs font-label uppercase tracking-widest text-outline">Notes</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {!notesCollapsed && (
+                    <button
+                      onClick={() => { setNotesExpanded(true); setNotesCollapsed(false) }}
+                      className="p-0.5 rounded text-outline hover:text-on-surface transition-colors"
+                      title="Expand notes to center"
+                    >
+                      <Maximize2 size={13} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setNotesCollapsed(v => !v)}
+                    className="p-0.5 rounded text-outline hover:text-on-surface transition-colors"
+                    title={notesCollapsed ? 'Show notes' : 'Hide notes'}
+                  >
+                    {notesCollapsed ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* Notes content */}
+              {!notesCollapsed && (
+                <div className="flex-1 overflow-hidden p-2">
+                  {React.cloneElement(notesPanel, { expanded: false })}
+                </div>
+              )}
+            </div>
+          )}
         </main>
 
         {/* Right: Sidebar */}

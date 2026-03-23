@@ -1,5 +1,5 @@
 import NotesWorkspace from '../notes/NotesWorkspace'
 
-export default function NotesSection({ onLog }) {
-  return <NotesWorkspace onLog={onLog} />
+export default function NotesSection({ onLog, expanded = false }) {
+  return <NotesWorkspace onLog={onLog} expanded={expanded} />
 }

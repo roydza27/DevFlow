@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { FilePlus, FileText, Trash2, Pencil, Check } from 'lucide-react'
 
-export default function NotesSidebar({ notes, activeNoteId, onSelect, onNew, onRename, onDelete }) {
+export default function NotesSidebar({ notes, activeNoteId, onSelect, onNew, onRename, onDelete, expanded = false }) {
   const [renamingId, setRenamingId] = useState(null)
   const [renameValue, setRenameValue] = useState('')
 
@@ -22,7 +22,7 @@ export default function NotesSidebar({ notes, activeNoteId, onSelect, onNew, onR
   }
 
   return (
-    <div className="flex flex-col w-36 shrink-0 border-r border-outline-variant overflow-hidden">
+    <div className={`flex flex-col shrink-0 border-r border-outline-variant overflow-hidden ${expanded ? 'w-52' : 'w-36'}`}>
       <div className="flex items-center justify-between px-2 py-1 shrink-0">
         <span className="text-xs font-label uppercase tracking-wider text-outline">Files</span>
         <button
