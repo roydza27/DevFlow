@@ -1,11 +1,13 @@
 import DashboardLayout from '../../app/layout/DashboardLayout'
-import EmptyState from '../../components/shared/EmptyState'
 import TaskSection from './TaskSection'
 import NotesSection from './NotesSection'
 import FocusPanel from '../tracking/FocusPanel'
 import RightSidebar from './RightSidebar'
 
 export default function Workspace({
+  projects,
+  currentProject,
+  onProjectSwitch,
   tasks,
   activeTask,
   elapsed,
@@ -21,8 +23,6 @@ export default function Workspace({
   tasksCompleted,
   timeToday,
 }) {
-  const isEmpty = tasks.length === 0
-
   const taskSectionProps = {
     tasks,
     onTaskSelect,
@@ -35,25 +35,21 @@ export default function Workspace({
 
   return (
     <DashboardLayout
+      projects={projects}
+      currentProject={currentProject}
+      onProjectSwitch={onProjectSwitch}
       activeTask={activeTask}
       leftPanel={<TaskSection {...taskSectionProps} />}
       centerPanel={
-        isEmpty ? (
-          <EmptyState
-            title="No tasks yet"
-            description="Use the task input on the left to add your first task and begin working."
-          />
-        ) : (
-          <FocusPanel
-            activeTask={activeTask}
-            elapsed={elapsed}
-            isRunning={isRunning}
-            onStart={onStart}
-            onStop={onStop}
-            tasksCompleted={tasksCompleted}
-            timeToday={timeToday}
-          />
-        )
+        <FocusPanel
+          activeTask={activeTask}
+          elapsed={elapsed}
+          isRunning={isRunning}
+          onStart={onStart}
+          onStop={onStop}
+          tasksCompleted={tasksCompleted}
+          timeToday={timeToday}
+        />
       }
       rightPanel={<RightSidebar />}
       notesPanel={<NotesSection />}
