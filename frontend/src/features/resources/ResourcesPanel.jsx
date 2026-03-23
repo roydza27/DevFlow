@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import ResourceItem from './ResourceItem'
-import Input from '../../components/ui/Input'
 
 const INITIAL_RESOURCES = [
   { id: 1, title: 'Figma Design Docs', url: '#', type: 'Figma' },
@@ -8,26 +7,30 @@ const INITIAL_RESOURCES = [
   { id: 3, title: 'DB ER Diagram', url: '#', type: 'Docs' },
 ]
 
+const TYPES = ['Docs', 'API', 'Figma', 'Reference']
+
 export default function ResourcesPanel({ onLog, showAdd, onAddDone }) {
   const [resources, setResources] = useState(INITIAL_RESOURCES)
-  const [input, setInput] = useState('')
+  const [titleInput, setTitleInput] = useState('')
+  const [urlInput, setUrlInput] = useState('')
+  const [typeInput, setTypeInput] = useState('Docs')
 
   function handleAdd() {
-    const val = input.trim()
-    if (!val) return
-    const parts = val.split(' ')
-    const url = parts.length > 1 ? parts.pop() : '#'
-    const title = parts.join(' ') || url
-    const newResource = { id: Date.now(), title, url, type: 'Reference' }
+    const title = titleInput.trim()
+    if (!title) return
+    const url = urlInput.trim() || '#'
+    const newResource = { id: Date.now(), title, url, type: typeInput }
     setResources(prev => [...prev, newResource])
     onLog?.({ message: `Resource added: ${title}`, type: 'info' })
-    setInput('')
+    setTitleInput('')
+    setUrlInput('')
+    setTypeInput('Docs')
     onAddDone?.()
   }
 
   function handleKeyDown(e) {
     if (e.key === 'Enter') handleAdd()
-    if (e.key === 'Escape') { setInput(''); onAddDone?.() }
+    if (e.key === 'Escape') { setTitleInput(''); setUrlInput(''); setTypeInput('Docs'); onAddDone?.() }
   }
 
   function handleDelete(id) {
@@ -47,13 +50,39 @@ export default function ResourcesPanel({ onLog, showAdd, onAddDone }) {
         ))}
       </div>
       {showAdd && (
-        <Input
-          autoFocus
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Title url… (Enter to save)"
-        />
+        <div className="flex flex-col gap-1 mt-1">
+          {/* Type selector */}
+          <div className="flex gap-1 flex-wrap">
+            {TYPES.map(t => (
+              <button
+                key={t}
+                onClick={() => setTypeInput(t)}
+                className={`px-2 py-0.5 rounded text-xs font-label transition-colors ${
+                  typeInput === t
+                    ? 'bg-primary-container text-on-primary-container'
+                    : 'bg-surface-container-high text-outline hover:text-on-surface'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <input
+            autoFocus
+            value={titleInput}
+            onChange={e => setTitleInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Title…"
+            className="w-full px-3 py-1.5 rounded bg-surface-container-high text-sm text-on-surface placeholder-outline border border-outline-variant focus:border-primary focus:outline-none font-body"
+          />
+          <input
+            value={urlInput}
+            onChange={e => setUrlInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="URL (optional) — Enter to save"
+            className="w-full px-3 py-1.5 rounded bg-surface-container-high text-sm text-on-surface placeholder-outline border border-outline-variant focus:border-primary focus:outline-none font-body"
+          />
+        </div>
       )}
     </div>
   )

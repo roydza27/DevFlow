@@ -14,6 +14,7 @@ export default function RightSidebar({ logs = [], onLog }) {
       <CollapsibleSection
         title="Commands"
         onAdd={() => setShowAddCmd(v => !v)}
+        isAdding={showAddCmd}
       >
         <CommandsPanel
           onLog={onLog}
@@ -27,6 +28,7 @@ export default function RightSidebar({ logs = [], onLog }) {
       <CollapsibleSection
         title="Resources"
         onAdd={() => setShowAddRes(v => !v)}
+        isAdding={showAddRes}
       >
         <ResourcesPanel
           onLog={onLog}
@@ -40,6 +42,7 @@ export default function RightSidebar({ logs = [], onLog }) {
       <CollapsibleSection
         title="Logs"
         onAdd={() => setShowAddLog(v => !v)}
+        isAdding={showAddLog}
       >
         <LogsPanel
           logs={logs}

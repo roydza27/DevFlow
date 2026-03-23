@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
+import { ChevronDown, ChevronRight, Plus, Minus } from 'lucide-react'
 
-export default function CollapsibleSection({ title, defaultOpen = true, onAdd, children }) {
+export default function CollapsibleSection({ title, defaultOpen = true, onAdd, isAdding = false, children }) {
   const [open, setOpen] = useState(defaultOpen)
 
   return (
@@ -17,10 +17,10 @@ export default function CollapsibleSection({ title, defaultOpen = true, onAdd, c
         {onAdd && (
           <button
             onClick={onAdd}
-            className="p-0.5 rounded text-outline hover:text-on-surface transition-colors"
-            title={`Add ${title.toLowerCase()}`}
+            className={`p-0.5 rounded transition-colors ${isAdding ? 'text-primary hover:text-on-surface' : 'text-outline hover:text-on-surface'}`}
+            title={isAdding ? `Cancel` : `Add ${title.toLowerCase()}`}
           >
-            <Plus size={13} />
+            {isAdding ? <Minus size={13} /> : <Plus size={13} />}
           </button>
         )}
       </div>
