@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import LogItem from './LogItem'
 import Input from '../../components/ui/Input'
+import { Trash2 } from 'lucide-react'
 
-export default function LogsPanel({ logs = [], onLog, showAdd, onAddDone }) {
+export default function LogsPanel({ logs = [], onLog, onClearLogs, showAdd, onAddDone }) {
   const [input, setInput] = useState('')
   const [filter, setFilter] = useState('all') // 'all' | 'user' | 'system'
 
@@ -15,7 +16,19 @@ export default function LogsPanel({ logs = [], onLog, showAdd, onAddDone }) {
     if (e.key === 'Escape') { setInput(''); onAddDone?.() }
   }
 
-  const isSystemLog = log => log.message?.startsWith('Switched to:') || log.message?.startsWith('Timer') || log.message?.startsWith('Workspace')
+  const isSystemLog = log =>
+    log.message?.startsWith('Switched to:') ||
+    log.message?.startsWith('Timer') ||
+    log.message?.startsWith('Workspace') ||
+    log.message?.startsWith('Task') ||
+    log.message?.startsWith('Active:') ||
+    log.message?.startsWith('Done:') ||
+    log.message?.startsWith('Blocked:') ||
+    log.message?.startsWith('Folder') ||
+    log.message?.startsWith('Command') ||
+    log.message?.startsWith('Resource') ||
+    log.message?.startsWith('Synced') ||
+    log.message?.startsWith('Imported')
 
   const filteredLogs = logs.filter(log => {
     if (filter === 'user') return !isSystemLog(log)
@@ -25,7 +38,7 @@ export default function LogsPanel({ logs = [], onLog, showAdd, onAddDone }) {
 
   return (
     <div className="flex flex-col gap-2 flex-1 min-h-0">
-      {/* Filter Tabs & Count */}
+      {/* Filter Tabs & Clear Action */}
       <div className="flex items-center justify-between gap-1">
         <div className="flex gap-1">
           {['all', 'user', 'system'].map(f => (
@@ -42,7 +55,18 @@ export default function LogsPanel({ logs = [], onLog, showAdd, onAddDone }) {
             </button>
           ))}
         </div>
-        <span className="text-[10px] text-outline font-mono">{filteredLogs.length} logs</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-outline font-mono">{filteredLogs.length} logs</span>
+          {logs.length > 0 && (
+            <button
+              onClick={onClearLogs}
+              className="p-0.5 rounded text-outline hover:text-error transition-colors"
+              title="Clear all logs"
+            >
+              <Trash2 size={11} />
+            </button>
+          )}
+        </div>
       </div>
 
       {showAdd && (

@@ -1,6 +1,6 @@
 # MEMORY.md — DevFlow Project Memory
 
-_Last updated: 2026-07-30 (session 16 — README and main docs complete)_
+_Last updated: 2026-07-30 (session 19 — log details storage & date context complete)_
 
 ---
 
@@ -10,7 +10,7 @@ Build **DevFlow** — a local-first developer workspace that helps developers in
 
 Principle: **Resume → Focus → Execute → Log → Continue → Track**
 
-Current session: Created comprehensive root `README.md` and updated system documentation. Rewrote `docs/Architecture.md` to reflect React 18, Zustand, and File System Access API stack. Created `backend/README.md` explaining dormant status. Archived obsolete task lists (`FrontendTasks-1.md`, `Frontendtasks-2.md`) to `docs/archive/`. Verified build clean.
+Current session: Fixed log details storage & date context in `useWorkspaceStore.js` and `LogsPanel.jsx`. Updated `ts()` helper to record month/day date context (`Jul 30, 00:40`), expanded system log auto-classification filters (`Active:`, `Done:`, `Task`, `Synced`, `Imported`), and added `clearLogs(projectId)` action with UI trash icon button. Verified build clean.
 
 ---
 
@@ -186,13 +186,15 @@ docs/Frontendtasks-2.md                         ← task list (phase 2)
   - Protected `done` tasks from accidental activation on click.
   - Added `Clear done (N)` bulk cleanup action button to `TaskSection.jsx` header.
   - Refactored `RightSidebar.jsx` dividers (`h-px bg-outline-variant/40`) for clear visual section separation.
-  - Fixed Center Column Layout (`DashboardLayout.jsx`): resolved void space layout bug where collapsing the timer focus panel left notes at a fixed bottom height; notes now dynamically expand to full height (`flex-1`) whenever the focus panel is collapsed.
-- **Documentation & Project Cleanup (session 16)**:
-  - Created root [`README.md`](../README.md) with vision, tech stack, layout diagram, quick start guide, and directory structure.
-  - Rewrote [`docs/Architecture.md`](../docs/Architecture.md) to accurately document the React 18, Zustand, Local-First, and File System Access API stack.
-  - Created [`backend/README.md`](../backend/README.md) documenting dormant REST API status.
-  - Moved completed task docs `FrontendTasks-1.md` and `Frontendtasks-2.md` to `docs/archive/`.
-  - Upgraded `LogsPanel.jsx`: removed 160px max-height cap, doubled scroll container viewport up to 320px with flex-1 expansion, and added instant category filter tabs (`ALL`, `USER`, `SYSTEM`).
+  - Upgraded Markdown Renderer (`NoteEditor.jsx`): added line-by-line GFM Markdown table parser supporting table headers, alignment, borders (`border-outline-variant/50`), hover highlights, and nested inline formatting within table cells.
+- **Architecture & File Consolidation Cleanup (session 17)**:
+  - Renamed `frontend/src/features/tracking/ActiveTaskPanel.jsx` → `FocusPanel.jsx` to eliminate the naming inversion.
+  - Deleted the obsolete `NotesSection.jsx` 15-line alias shim, directly connecting `NotesWorkspace` in layout.
+  - Verified 0 remaining phantom files or unused shims.
+  - Upgraded Log Details & Storage (`useWorkspaceStore.js` & `LogsPanel.jsx`):
+    - Added date context to log timestamps (`ts()` now formats as `Jul 30, 00:40`).
+    - Expanded system log classification filters (`Active:`, `Done:`, `Blocked:`, `Task`, `Synced`, `Imported`, `Folder`).
+    - Added `clearLogs(projectId)` store action and UI trash icon button to clear logs per workspace.
   - Visual hierarchy added to `LogItem.jsx` distinguishing automated system logs from user activity.
   - Global `timeToday` & `tasksCompleted` calculated across all workspaces combined.
   - Fixed timer display recalculation effect in `DashboardPage.jsx` when switching active workspace.

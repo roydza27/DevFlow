@@ -1,6 +1,6 @@
 import DashboardLayout from '../../app/layout/DashboardLayout'
 import TaskSection from './TaskSection'
-import NotesSection from './NotesSection'
+import NotesWorkspace from '../notes/NotesWorkspace'
 import FocusPanel from '../tracking/FocusPanel'
 import RightSidebar from './RightSidebar'
 
@@ -29,6 +29,7 @@ export default function Workspace({
   timeToday,
   logs,
   onLog,
+  onLogClear,
   notes,
   onNoteNew,
   onNoteChange,
@@ -82,6 +83,7 @@ export default function Workspace({
         <RightSidebar
           logs={logs}
           onLog={onLog}
+          onLogClear={onLogClear}
           commands={commands}
           onCommandAdd={onCommandAdd}
           onCommandDelete={onCommandDelete}
@@ -91,7 +93,7 @@ export default function Workspace({
         />
       }
       notesPanel={
-        <NotesSection
+        <NotesWorkspace
           key={currentProject?.id}
           notes={notes}
           onNew={onNoteNew}

@@ -7,6 +7,7 @@ import LogsPanel from '../logs/LogsPanel'
 export default function RightSidebar({
   logs = [],
   onLog,
+  onLogClear,
   commands = [],
   onCommandAdd,
   onCommandDelete,
@@ -62,6 +63,7 @@ export default function RightSidebar({
         <LogsPanel
           logs={logs}
           onLog={onLog}
+          onClearLogs={onLogClear}
           showAdd={showAddLog}
           onAddDone={() => setShowAddLog(false)}
         />

@@ -134,6 +134,7 @@ export default function DashboardPage() {
     addResource,
     deleteResource,
     addLog,
+    clearLogs,
   } = useWorkspaceStore()
 
   const project = useActiveProject()
@@ -238,6 +239,7 @@ export default function DashboardPage() {
       timeToday={timeToday}
       logs={project.logs ?? []}
       onLog={handleLog}
+      onLogClear={() => clearLogs(activeProjectId)}
       notes={project.notes ?? []}
       onNoteNew={() => addNote(activeProjectId)}
       onNoteChange={(noteId, content) => updateNote(activeProjectId, noteId, content)}

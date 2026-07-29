@@ -15,7 +15,10 @@ import {
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function ts() {
-  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const d = new Date()
+  const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return `${dateStr}, ${timeStr}`
 }
 
 function mkLog(message, type = 'info') {
@@ -451,6 +454,11 @@ export const useWorkspaceStore = create(
 
       addLog(projectId, message, type = 'info') {
         get()._log(projectId, message, type)
+        syncProject(projectId)
+      },
+
+      clearLogs(projectId) {
+        get()._patch(projectId, p => ({ ...p, logs: [] }))
         syncProject(projectId)
       },
     }),
