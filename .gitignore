@@ -1,7 +1,9 @@
-# Dependencies
+# Dependencies & Dev Caches
 node_modules/
 .pnpm-store/
 .yarn/
+.vite/
+*.vite/
 
 # Production builds
 dist/
