@@ -1,6 +1,6 @@
 # MEMORY.md — DevFlow Project Memory
 
-_Last updated: 2026-07-30 (session 19 — log details storage & date context complete)_
+_Last updated: 2026-07-30 (session 21 — .vite cache cleanup & gitignore rule complete)_
 
 ---
 
@@ -10,7 +10,7 @@ Build **DevFlow** — a local-first developer workspace that helps developers in
 
 Principle: **Resume → Focus → Execute → Log → Continue → Track**
 
-Current session: Fixed log details storage & date context in `useWorkspaceStore.js` and `LogsPanel.jsx`. Updated `ts()` helper to record month/day date context (`Jul 30, 00:40`), expanded system log auto-classification filters (`Active:`, `Done:`, `Task`, `Synced`, `Imported`), and added `clearLogs(projectId)` action with UI trash icon button. Verified build clean.
+Current session: Removed temporary Vite cache directory (`frontend/.vite/`), added `.vite/` and `*.vite/` to root `.gitignore`, committed the updated ignore rules, and pushed clean changes to GitHub (`main` branch). Verified git status clean.
 
 ---
 
@@ -187,10 +187,10 @@ docs/Frontendtasks-2.md                         ← task list (phase 2)
   - Added `Clear done (N)` bulk cleanup action button to `TaskSection.jsx` header.
   - Refactored `RightSidebar.jsx` dividers (`h-px bg-outline-variant/40`) for clear visual section separation.
   - Upgraded Markdown Renderer (`NoteEditor.jsx`): added line-by-line GFM Markdown table parser supporting table headers, alignment, borders (`border-outline-variant/50`), hover highlights, and nested inline formatting within table cells.
-- **Architecture & File Consolidation Cleanup (session 17)**:
-  - Renamed `frontend/src/features/tracking/ActiveTaskPanel.jsx` → `FocusPanel.jsx` to eliminate the naming inversion.
-  - Deleted the obsolete `NotesSection.jsx` 15-line alias shim, directly connecting `NotesWorkspace` in layout.
-  - Verified 0 remaining phantom files or unused shims.
+- **GitHub Actions CI/CD & Git Deployment (session 20)**:
+  - Created GitHub Actions CI/CD workflow ([`.github/workflows/ci-cd.yml`](../.github/workflows/ci-cd.yml)) for automated Node 20 dependency installation, Vite frontend build verification, and Express backend syntax testing.
+  - Refactored root [`.gitignore`](../.gitignore) to cover `node_modules`, `dist/`, `.env`, OS artifacts, and temporary directories.
+  - Successfully committed and pushed all updates to `https://github.com/roydza27/DevFlow.git` on branch `main`.
   - Upgraded Log Details & Storage (`useWorkspaceStore.js` & `LogsPanel.jsx`):
     - Added date context to log timestamps (`ts()` now formats as `Jul 30, 00:40`).
     - Expanded system log classification filters (`Active:`, `Done:`, `Blocked:`, `Task`, `Synced`, `Imported`, `Folder`).
