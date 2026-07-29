@@ -1,6 +1,6 @@
 # MEMORY.md — DevFlow Project Memory
 
-_Last updated: 2026-07-29 (session 9 — full Markdown renderer complete)_
+_Last updated: 2026-07-30 (session 15 — center column layout & notes expansion fix complete)_
 
 ---
 
@@ -10,7 +10,7 @@ Build **DevFlow** — a local-first developer workspace that helps developers in
 
 Principle: **Resume → Focus → Execute → Log → Continue → Track**
 
-Current session: Implemented full-featured custom Markdown parser (`parseMarkdown`) in `NoteEditor.jsx`. Supports headers (H1-H4), fenced code blocks, inline code, bold, italic, links, blockquotes, unordered/ordered lists, horizontal rules, and paragraph formatting. Default view set to Preview Mode. Verified build clean.
+Current session: Fixed center column layout in `DashboardLayout.jsx`. Collapsing the timer focus panel (`ChevronUp`) now automatically expands the Notes workspace to fill the full remaining center height (`flex-1`), preventing empty void spaces. Added restore button (`Minimize2`) to restore the focus panel smoothly. Verified build clean.
 
 ---
 
@@ -180,8 +180,16 @@ docs/Frontendtasks-2.md                         ← task list (phase 2)
   - Rewrote `src/server.js` to handle async startup and DB connection errors
   - Removed obsolete root `app.js` and `server.js`
   - Cleaned `package.json` (removed unused `main` and `eslint`)
-- **Timer & Notes UX Updates (session 6 & 7)**:
-  - Fixed cross-workspace timer persistence: `switchProject()` now flushes the active session's running seconds into `accumulated` before switching so time is never lost across workspaces.
+- **Timer, Notes & UI UX Refinements (sessions 6 - 11)**:
+  - Added Un-block/Restore action button (↩ icon) to `TaskItem.jsx` for blocked tasks.
+  - Mapped human-readable status labels (`Active`, `Pending`, `Blocked`, `Done`) to item badges.
+  - Protected `done` tasks from accidental activation on click.
+  - Added `Clear done (N)` bulk cleanup action button to `TaskSection.jsx` header.
+  - Refactored `RightSidebar.jsx` dividers (`h-px bg-outline-variant/40`) for clear visual section separation.
+  - Fixed Center Column Layout (`DashboardLayout.jsx`): resolved void space layout bug where collapsing the timer focus panel left notes at a fixed bottom height; notes now dynamically expand to full height (`flex-1`) whenever the focus panel is collapsed.
+  - Upgraded `LogsPanel.jsx`: removed 160px max-height cap, doubled scroll container viewport up to 320px with flex-1 expansion, and added instant category filter tabs (`ALL`, `USER`, `SYSTEM`).
+  - Visual hierarchy added to `LogItem.jsx` distinguishing automated system logs from user activity.
+  - Global `timeToday` & `tasksCompleted` calculated across all workspaces combined.
   - Fixed timer display recalculation effect in `DashboardPage.jsx` when switching active workspace.
   - Added Markdown Preview & Custom Parser (`NoteEditor.jsx`):
     - Replaced basic string replacer with `parseMarkdown()` supporting H1-H4 headers, fenced code blocks with dark styling, inline code snippets, bold/italic formatting, links, blockquotes, horizontal rules, and unordered/ordered lists.
