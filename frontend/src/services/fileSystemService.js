@@ -48,7 +48,71 @@ export async function verifyPermission(handle) {
   }
 }
 
-// ─── Directory picker ─────────────────────────────────────────────────────────
+// ─── Directory & Markdown Scan Helpers ───────────────────────────────────────
+
+/**
+ * Recursively scans a directory handle for all `.md` files.
+ * Ignores hidden folders (starting with .) such as .git, .devflow, .obsidian.
+ * Returns an array of { title, content, path }
+ */
+export async function scanMarkdownFilesFromDir(dirHandle, subPath = '') {
+  if (!dirHandle) return []
+  const results = []
+
+  try {
+    for await (const entry of dirHandle.values()) {
+      // Ignore hidden directories (.git, .devflow, .obsidian, etc.)
+      if (entry.name.startsWith('.')) continue
+
+      if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+        try {
+          const file = await entry.getFile()
+          const content = await file.text()
+          const title = entry.name.replace(/\.md$/i, '')
+          const relPath = subPath ? `${subPath}/${entry.name}` : entry.name
+          results.push({ id: Date.now() + Math.random(), title, content, path: relPath })
+        } catch {
+          /* skip unreadable files */
+        }
+      } else if (entry.kind === 'directory') {
+        const nestedPath = subPath ? `${subPath}/${entry.name}` : entry.name
+        const subResults = await scanMarkdownFilesFromDir(entry, nestedPath)
+        results.push(...subResults)
+      }
+    }
+  } catch {
+    /* skip scan errors */
+  }
+
+  return results
+}
+
+/**
+ * Scans a FileList from a webkitdirectory file input.
+ * Extracts all .md files, ignoring hidden files/folders.
+ */
+export async function scanMarkdownFromFiles(fileList) {
+  if (!fileList || fileList.length === 0) return []
+  const results = []
+
+  for (const file of Array.from(fileList)) {
+    // Ignore hidden files or directories starting with '.'
+    if (file.webkitRelativePath.split('/').some(segment => segment.startsWith('.'))) continue
+
+    if (file.name.endsWith('.md')) {
+      try {
+        const content = await file.text()
+        const title = file.name.replace(/\.md$/i, '')
+        const relPath = file.webkitRelativePath || file.name
+        results.push({ id: Date.now() + Math.random(), title, content, path: relPath })
+      } catch {
+        /* skip unreadable file */
+      }
+    }
+  }
+
+  return results
+}
 
 /**
  * Opens the native folder picker.

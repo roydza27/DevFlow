@@ -1,6 +1,6 @@
 import NotesWorkspace from '../notes/NotesWorkspace'
 
-export default function NotesSection({ notes = [], onNew, onChange, onRename, onDelete, expanded = false }) {
+export default function NotesSection({ notes = [], onNew, onChange, onRename, onDelete, onSyncObsidian, onImportFileList, expanded = false }) {
   return (
     <NotesWorkspace
       notes={notes}
@@ -8,6 +8,8 @@ export default function NotesSection({ notes = [], onNew, onChange, onRename, on
       onChange={onChange}
       onRename={onRename}
       onDelete={onDelete}
+      onSyncObsidian={onSyncObsidian}
+      onImportFileList={onImportFileList}
       expanded={expanded}
     />
   )

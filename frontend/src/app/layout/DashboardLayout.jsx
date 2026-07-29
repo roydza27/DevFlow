@@ -17,6 +17,8 @@ export default function DashboardLayout({
   currentProject,
   onProjectSwitch,
   onCreateProject,
+  onRenameProject,
+  onDeleteProject,
   onLinkFolder,
   onUnlinkFolder,
   activeTask,
@@ -110,6 +112,8 @@ export default function DashboardLayout({
         currentProject={currentProject}
         onProjectSwitch={onProjectSwitch}
         onCreateProject={onCreateProject}
+        onRenameProject={onRenameProject}
+        onDeleteProject={onDeleteProject}
         onLinkFolder={onLinkFolder}
         onUnlinkFolder={onUnlinkFolder}
         activeTask={activeTask}

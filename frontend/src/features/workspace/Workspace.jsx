@@ -9,6 +9,8 @@ export default function Workspace({
   currentProject,
   onProjectSwitch,
   onCreateProject,
+  onRenameProject,
+  onDeleteProject,
   onLinkFolder,
   onUnlinkFolder,
   tasks,
@@ -32,12 +34,16 @@ export default function Workspace({
   onNoteChange,
   onNoteRename,
   onNoteDelete,
+  onNoteSyncObsidian,
+  onNoteImportFileList,
   commands,
   onCommandAdd,
   onCommandDelete,
   resources,
   onResourceAdd,
   onResourceDelete,
+  globalTasksCompleted,
+  globalTimeToday,
 }) {
   return (
     <DashboardLayout
@@ -45,6 +51,8 @@ export default function Workspace({
       currentProject={currentProject}
       onProjectSwitch={onProjectSwitch}
       onCreateProject={onCreateProject}
+      onRenameProject={onRenameProject}
+      onDeleteProject={onDeleteProject}
       onLinkFolder={onLinkFolder}
       onUnlinkFolder={onUnlinkFolder}
       activeTask={activeTask}
@@ -66,8 +74,8 @@ export default function Workspace({
           isRunning={isRunning}
           onStart={onStart}
           onStop={onStop}
-          tasksCompleted={tasksCompleted}
-          timeToday={timeToday}
+          tasksCompleted={globalTasksCompleted ?? tasksCompleted}
+          timeToday={globalTimeToday ?? timeToday}
         />
       }
       rightPanel={
@@ -90,9 +98,11 @@ export default function Workspace({
           onChange={onNoteChange}
           onRename={onNoteRename}
           onDelete={onNoteDelete}
+          onSyncObsidian={onNoteSyncObsidian}
+          onImportFileList={onNoteImportFileList}
         />
       }
-      footerProps={{ tasksCompleted, timeToday }}
+      footerProps={{ tasksCompleted: globalTasksCompleted ?? tasksCompleted, timeToday: globalTimeToday ?? timeToday }}
     />
   )
 }

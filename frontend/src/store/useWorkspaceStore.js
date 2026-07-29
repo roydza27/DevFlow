@@ -8,6 +8,8 @@ import {
   writeProjectToDir,
   writeNoteToDir,
   deleteNoteFromDir,
+  scanMarkdownFilesFromDir,
+  scanMarkdownFromFiles,
 } from '../services/fileSystemService'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -37,72 +39,9 @@ function syncProject(projectId) {
   }, 0)
 }
 
-// ─── sample seed data ────────────────────────────────────────────────────────
-
-const SAMPLE_PROJECTS = [
-  {
-    id: 1,
-    name: 'DevFlow',
-    lastAccessed: Date.now(),
-    linkedFolderName: null,
-    tasks: [
-      { id: 1, title: 'Refactor database schema', status: 'doing' },
-      { id: 2, title: 'Update API documentation', status: 'todo' },
-      { id: 3, title: 'Fix auth middleware bug', status: 'todo' },
-      { id: 4, title: 'Deploy to staging', status: 'blocked' },
-      { id: 5, title: 'Initialize repo', status: 'done' },
-    ],
-    notes: [
-      { id: 1, title: 'Project Notes', content: '## Project Notes\n\nWrite anything here…' },
-    ],
-    commands: [
-      { id: 1, label: 'Develop', command: 'npm run dev' },
-      { id: 2, label: 'Git Branch', command: 'feature/db-refactor' },
-      { id: 3, label: 'Test', command: 'npm run test:unit' },
-      { id: 4, label: 'Docker', command: 'compose up -d' },
-    ],
-    resources: [
-      { id: 1, title: 'Figma Design Docs', url: '#', type: 'Figma' },
-      { id: 2, title: 'API Endpoints Spec', url: '#', type: 'API' },
-      { id: 3, title: 'DB ER Diagram', url: '#', type: 'Docs' },
-    ],
-    logs: [
-      { id: 1, message: 'Workspace initialized', type: 'success', timestamp: ts() },
-    ],
-    timer: mkTimer(),
-  },
-  {
-    id: 2,
-    name: 'Monolith API',
-    lastAccessed: Date.now() - 3600000,
-    linkedFolderName: null,
-    tasks: [
-      { id: 10, title: 'Set up Express routes', status: 'doing' },
-      { id: 11, title: 'Add JWT auth middleware', status: 'todo' },
-      { id: 12, title: 'Write unit tests', status: 'todo' },
-    ],
-    notes: [{ id: 10, title: 'API Notes', content: '' }],
-    commands: [],
-    resources: [],
-    logs: [{ id: 1, message: 'Workspace initialized', type: 'success', timestamp: ts() }],
-    timer: mkTimer(),
-  },
-  {
-    id: 3,
-    name: 'Design System',
-    lastAccessed: Date.now() - 7200000,
-    linkedFolderName: null,
-    tasks: [
-      { id: 20, title: 'Create token library', status: 'todo' },
-      { id: 21, title: 'Build component storybook', status: 'todo' },
-    ],
-    notes: [{ id: 20, title: 'Design Notes', content: '' }],
-    commands: [],
-    resources: [],
-    logs: [{ id: 1, message: 'Workspace initialized', type: 'success', timestamp: ts() }],
-    timer: mkTimer(),
-  },
-]
+// ─── initial state ────────────────────────────────────────────────────────────
+// New installs start empty. Returning users restore from localStorage via
+// the persist middleware's merge function below.
 
 // ─── normaliser (schema migration guard) ────────────────────────────────────
 
@@ -124,8 +63,8 @@ function normalizeProject(p) {
 export const useWorkspaceStore = create(
   persist(
     (set, get) => ({
-      projects: SAMPLE_PROJECTS,
-      activeProjectId: SAMPLE_PROJECTS[0].id,
+      projects: [],
+      activeProjectId: null,
 
       // ── internal helpers ────────────────────────────────────────────────
 
@@ -218,9 +157,45 @@ export const useWorkspaceStore = create(
         if (id === activeProjectId) return
         const project = projects.find(p => p.id === id)
         if (!project) return
+
+        // Flush active running timer in old project if running
+        const currentActive = projects.find(p => p.id === activeProjectId)
+        if (currentActive?.timer?.startedAt) {
+          const extra = Math.floor((Date.now() - currentActive.timer.startedAt) / 1000)
+          get()._patch(activeProjectId, p => ({
+            ...p,
+            timer: {
+              ...p.timer,
+              startedAt: Date.now(), // keep running timestamp fresh for returning
+              accumulated: p.timer.accumulated + extra,
+            },
+          }))
+        }
+
         get()._patch(id, p => ({ ...p, lastAccessed: Date.now() }))
         set({ activeProjectId: id })
         get()._log(id, `Switched to: ${project.name}`, 'info')
+      },
+
+      renameProject(projectId, name) {
+        const trimmed = name.trim()
+        if (!trimmed) return
+        get()._patch(projectId, p => ({ ...p, name: trimmed }))
+        get()._log(projectId, `Workspace renamed to: ${trimmed}`, 'info')
+        syncProject(projectId)
+      },
+
+      deleteProject(projectId) {
+        const { projects, activeProjectId } = get()
+        const remaining = projects.filter(p => p.id !== projectId)
+        // Switch to the most-recently-accessed remaining project, or null
+        const newActive = projectId === activeProjectId
+          ? (remaining.sort((a, b) => b.lastAccessed - a.lastAccessed)[0]?.id ?? null)
+          : activeProjectId
+        // Clean up any linked folder handles
+        setDirHandle(projectId, null)
+        removeHandleFromIDB(projectId).catch(() => {})
+        set({ projects: remaining, activeProjectId: newActive })
       },
 
       // ── task actions ────────────────────────────────────────────────────
@@ -378,6 +353,68 @@ export const useWorkspaceStore = create(
         if (handle) deleteNoteFromDir(handle, noteId).catch(() => {})
       },
 
+      /**
+       * Scans the linked folder or an explicitly passed directory handle for all .md files (Obsidian/cloud notes)
+       * and imports or syncs them into the project workspace notes.
+       */
+      async syncObsidianFolder(projectId, customHandle = null) {
+        const handle = customHandle || getDirHandle(projectId)
+        if (!handle) return 0
+
+        const scannedNotes = await scanMarkdownFilesFromDir(handle)
+        if (scannedNotes.length === 0) return 0
+
+        get()._patch(projectId, p => {
+          const existingMap = new Map(p.notes.map(n => [n.path || n.title, n]))
+          const updatedNotes = [...p.notes]
+
+          scannedNotes.forEach(scanned => {
+            const key = scanned.path || scanned.title
+            if (existingMap.has(key)) {
+              // Update existing note content
+              const target = existingMap.get(key)
+              target.content = scanned.content
+            } else {
+              // Add newly found markdown file
+              updatedNotes.push(scanned)
+            }
+          })
+
+          return { ...p, notes: updatedNotes }
+        })
+
+        get()._log(projectId, `Synced ${scannedNotes.length} markdown note(s) from folder`, 'success')
+        return scannedNotes.length
+      },
+
+      /**
+       * Direct import from HTML5 FileList / directory picker input
+       */
+      async importMarkdownFileList(projectId, fileList) {
+        const scannedNotes = await scanMarkdownFromFiles(fileList)
+        if (scannedNotes.length === 0) return 0
+
+        get()._patch(projectId, p => {
+          const existingMap = new Map(p.notes.map(n => [n.path || n.title, n]))
+          const updatedNotes = [...p.notes]
+
+          scannedNotes.forEach(scanned => {
+            const key = scanned.path || scanned.title
+            if (existingMap.has(key)) {
+              const target = existingMap.get(key)
+              target.content = scanned.content
+            } else {
+              updatedNotes.push(scanned)
+            }
+          })
+
+          return { ...p, notes: updatedNotes }
+        })
+
+        get()._log(projectId, `Imported ${scannedNotes.length} markdown file(s)`, 'success')
+        return scannedNotes.length
+      },
+
       // ── command actions ─────────────────────────────────────────────────
 
       addCommand(projectId, label, command) {
@@ -422,13 +459,17 @@ export const useWorkspaceStore = create(
       name: 'devflow_projects',
       merge: (stored, initial) => {
         try {
-          if (!stored || !Array.isArray(stored.projects) || stored.projects.length === 0) {
+          if (!stored || !Array.isArray(stored.projects)) {
             return initial
           }
+          const projects = stored.projects.map(normalizeProject)
+          // Validate that activeProjectId still refers to an existing project
+          const activeExists = projects.some(p => p.id === stored.activeProjectId)
           return {
             ...initial,
             ...stored,
-            projects: stored.projects.map(normalizeProject),
+            projects,
+            activeProjectId: activeExists ? stored.activeProjectId : (projects[0]?.id ?? null),
           }
         } catch {
           return initial

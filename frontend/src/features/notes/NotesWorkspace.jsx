@@ -2,7 +2,7 @@ import { useState } from 'react'
 import NotesSidebar from './NotesSidebar'
 import NoteEditor from './NoteEditor'
 
-export default function NotesWorkspace({ notes = [], onNew, onChange, onRename, onDelete, expanded = false }) {
+export default function NotesWorkspace({ notes = [], onNew, onChange, onRename, onDelete, onSyncObsidian, onImportFileList, expanded = false }) {
   // activeNoteId is local UI state — resets when component remounts (keyed by projectId in parent)
   const [activeNoteId, setActiveNoteId] = useState(notes[0]?.id ?? null)
 
@@ -32,6 +32,8 @@ export default function NotesWorkspace({ notes = [], onNew, onChange, onRename, 
         onNew={handleNew}
         onRename={onRename}
         onDelete={handleDelete}
+        onSyncObsidian={onSyncObsidian}
+        onImportFileList={onImportFileList}
         expanded={expanded}
       />
       <NoteEditor
