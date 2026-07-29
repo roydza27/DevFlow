@@ -1,624 +1,128 @@
-# DEVFLOW ARCHITECTURE DOCUMENT (FINAL)
+# DevFlow Architecture Specification
 
----
-
-# 📌 1. System Overview
-
----
-
-## 🎯 Goal
-
-DevFlow is a **local-first, single-user developer workspace system** designed to:
-
-* Resume work instantly
-* Maintain focus on a single task
-* Track real development activity
-* Keep all project-related context in one place
-
----
-
-## 🧠 Core Architectural Concept
-
-👉 **Project = Workspace**
-
-A project is not a data entity alone — it is a **live working environment** that contains:
-
-* Tasks (work)
-* Timer (focus)
-* Logs (activity history)
-* Notes (knowledge)
-* Resources (context)
-* Commands (execution helpers)
-
----
-
-## 🧩 Architectural Style
-
-👉 **Monolithic Backend + SPA Frontend**
-
-* Backend: Laravel (business logic + persistence)
-* Frontend: React (via Inertia)
-* Database: SQLite (local)
-
----
-
-## 🏗️ High-Level Architecture
-
-[ React UI (Inertia) ]
-↓
-[ Laravel Controllers ]
-↓
-[ Service Layer (Business Logic) ]
-↓
-[ SQLite Database ]
-
----
-
-# 📌 2. System Components
-
----
-
-## 🔹 2.1 Frontend Layer (React + Inertia)
-
----
-
-### Responsibilities:
-
-* Render workspace UI
-* Manage UI state
-* Handle user interaction
-* Trigger backend operations
-
----
-
-### Key Characteristics:
-
-* Single-screen workspace (no navigation)
-* Component-based architecture
-* Minimal routing
-* Context-driven UI (project-based)
-
----
-
-### Core UI Structure:
-
-Workspace
-├── Project Header
-├── Task Panel
-├── Active Task Panel
-├── Timer + Insights
-├── Right Sidebar (collapsible)
-│    ├── Quick Actions
-│    ├── Resources
-│    ├── Commands
-│    ├── Logs
-├── Notes Workspace (multi-file)
-└── Footer Stats
-
----
-
-### UI Principle:
-
-👉 **Frontend reflects workspace state — not navigation state**
-
----
-
-### Data Handling:
-
-* Uses Inertia for server communication
-* No separate REST API initially
-* Receives hydrated data from Laravel
-
----
-
-## 🔹 2.2 Backend Layer (Laravel)
-
----
-
-### Responsibilities:
-
-* Enforce business rules
-* Handle data validation
-* Manage state transitions
-* Persist data
-* Compute derived values
-
----
-
-### Structure:
-
-* Controllers → thin
-* Services → core logic
-* Models → data representation
-* SQLite → storage
-
----
-
-### Critical Design Rule:
-
-👉 **All business logic lives in Service Layer**
-
----
-
-## 🔹 2.3 Database Layer (SQLite)
-
----
-
-### Responsibilities:
-
-* Store all project-scoped data
-* Maintain relationships
-* Provide fast local access
-
----
-
-### Characteristics:
-
-* File-based
-* Zero configuration
-* Optimized for local usage
-
----
-
-# 📌 3. Data Flow Architecture
-
----
-
-## 🔁 Standard Flow
-
-User Action
-↓
-React Component
-↓
-Inertia Request
-↓
-Laravel Controller
-↓
-Service Layer
-↓
-Database
-↓
-Response → UI Update
-
----
-
-## ⚡ Key Principle
-
-👉 Frontend = interaction + display
-👉 Backend = truth + enforcement
-
----
-
-# 📌 4. Module-Level Architecture
-
----
-
-## 🧩 4.1 Project Module
-
----
-
-### Backend:
-
-* Create/update projects
-* Track last accessed project
-
----
-
-### Frontend:
-
-* Load workspace
-* Switch project context
-
----
-
----
-
-## 📋 4.2 Task Module (CORE)
-
----
-
-### Backend Responsibilities:
-
-* Enforce:
-
-  * single active task (`doing`)
-  * state transitions
-  * sorting rules
-
----
-
-### Frontend Responsibilities:
-
-* Render grouped tasks
-* Handle quick add
-* Trigger task updates
-
----
-
-### Critical Rule:
-
-IF task → set to `doing`
-THEN reset previous active task
-
----
-
----
-
-## ⏱️ 4.3 Tracking Module
-
----
-
-### Backend:
-
-Stores:
-
-* started_at
-* accumulated time
-
----
-
-### Logic:
-
-Start → store timestamp
-Stop → calculate duration → add to total
-
----
-
-### Frontend:
-
-* Timer display
-* Start/Stop controls
-* Show insights:
-
-  * time today
-  * last session
-  * total time
-
----
-
----
-
-## 📜 4.4 Logs Module (NEW CORE)
-
----
-
-### Backend:
-
-* Store logs:
-
-  * content
-  * timestamp
-  * project_id
-
----
-
-### Characteristics:
-
-* Append-only
-* Lightweight
-* Project-scoped
-
----
+> **Version**: 1.0.0  
+> **Updated**: July 2026  
+> **Status**: Current Production Architecture
 
-### Frontend:
-
-* Quick log input
-* Display recent logs
-* Inline usage (sidebar)
-
----
-
----
-
-## 🧠 4.5 Notes Module (UPGRADED)
-
----
-
-### Backend:
-
-* Store:
-
-  * multiple notes per project
-  * markdown content
-
----
-
-### Frontend:
-
-* Multi-file system
-* Sidebar file navigation
-* Markdown editor
-
----
-
-### Design Principle:
-
-👉 Inspired by Obsidian
-👉 Simplified (no graph/backlinks)
-
----
-
----
-
-## 🔗 4.6 Resources Module (REPLACES LINKS)
-
----
-
-### Backend:
-
-* Store:
-
-  * title
-  * url
-  * type (docs / figma / api / etc)
-
----
-
-### Frontend:
-
-* Group by category
-* Display in sidebar
-* Quick access
-
----
-
----
-
-## ⚡ 4.7 Commands Module
-
----
-
-### Backend:
-
-* Store project commands
-
----
-
-### Frontend:
-
-* Copy command
-* Display list
-
----
-
----
-
-## 🖥️ 4.8 Workspace Module (Dashboard)
-
----
-
-### Role:
-
-👉 Central aggregator of all modules
-
----
-
-### Backend:
-
-* Fetch:
-
-  * project data
-  * tasks
-  * logs
-  * notes
-  * resources
-  * stats
-
----
-
-### Frontend:
-
-* Render full workspace
-* Maintain layout structure
-
----
-
-### Critical Rule:
-
-👉 **No navigation — only workspace rendering**
-
----
-
----
-
-## ⚡ 4.9 Quick Add Module
-
----
-
-### Backend:
-
-* Create:
-
-  * tasks
-  * logs
-  * resources
-  * notes
-
----
-
-### Frontend:
-
-* Instant input
-* Keyboard-based actions
-
----
-
----
-
-## 📊 4.10 Feedback Module
-
----
-
-### Backend:
-
-Compute:
-
-* tasks completed today
-* time spent today
-* total time
-
----
-
-### Frontend:
-
-* Display minimal insights (no dashboards)
-
----
-
-# 📌 5. State Management Architecture
-
----
-
-## 🔹 Types of State
-
----
-
-### 1. Server State (Source of Truth)
-
-* Projects
-* Tasks
-* Logs
-* Notes
-* Resources
-* Commands
-
----
-
-### 2. UI State (Temporary)
-
-* input fields
-* selected task
-* timer visual state
-* panel collapse state
-
----
-
-## 🔹 Rule:
-
-👉 Backend = truth
-👉 Frontend = temporary state
-
----
-
-# 📌 6. Routing Architecture
-
----
-
-## Laravel Routes
-
-GET    /dashboard
-POST   /projects
-POST   /tasks
-PATCH  /tasks/{id}
-POST   /logs
-POST   /notes
-POST   /resources
-POST   /commands
-
----
-
-## Frontend Routing
-
-👉 Single route:
-
-* /dashboard
-
----
-
-# 📌 7. Business Logic Placement
-
----
-
-## ❌ Avoid:
-
-* Logic in React
-* Logic in Controllers
-
----
-
-## ✅ Use:
-
-👉 Service Layer
-
 ---
 
-### Example Services:
+## 1. Executive Overview
 
-* TaskService
-* TimerService
-* LogService
-* ResourceService
-* NoteService
+DevFlow is a local-first single-page developer workspace application. It provides real-time task focus, Markdown note editing, command bookmarking, resource management, activity logging, and time tracking without requiring internet connectivity or external cloud databases.
 
 ---
-
-# 📌 8. Constraints Handling
-
----
-
-## Limitations:
-
-* Cannot execute commands
-* Cannot access file system
 
----
+## 2. Technology Stack
 
-## Solutions:
+### Frontend Architecture
+- **Framework**: React 18 + Vite
+- **State Management**: Zustand v5 with `persist` middleware
+- **Styling**: TailwindCSS v3 (Material Design 3 Dark Theme Palette)
+- **Icons**: `lucide-react`
+- **Persistence**: `localStorage` (Key: `devflow_projects`) + File System Access API (`dirHandle` stored in IndexedDB)
 
-* Copy-to-clipboard
-* URL opening
+### Optional Backend API Architecture
+- **Runtime**: Node.js + Express 5
+- **Module System**: ES Modules (`"type": "module"`)
+- **Database**: MongoDB via Mongoose 8+
+- **Security**: CORS, Environment Variable Isolation (`dotenv`)
 
 ---
 
-# 📌 9. Performance Considerations
+## 3. State & Data Flow Architecture
 
----
+DevFlow follows a single-source-of-truth state architecture implemented in [`useWorkspaceStore.js`](../frontend/src/store/useWorkspaceStore.js).
 
-## Backend:
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Zustand Workspace Store                         │
+│                    (useWorkspaceStore.js)                              │
+└───────┬────────────────────────────────────────────────────────┬───────┘
+        │                                                        │
+        ▼                                                        ▼
+┌───────────────────────────────┐        ┌───────────────────────────────┐
+│     Browser LocalStorage      │        │   File System Access API      │
+│  (Zustand Persist Middleware) │        │ (Optional Directory Sync &    │
+│    Key: devflow_projects      │        │    IndexedDB Handle Store)    │
+└───────────────────────────────┘        └───────────────────────────────┘
+```
 
-* Efficient queries
-* Minimal joins
+### Core Project Schema
+```typescript
+interface Project {
+  id: number;
+  name: string;
+  lastAccessed: number;
+  linkedFolderName: string | null;
+  tasks: Task[];
+  notes: Note[];
+  commands: Command[];
+  resources: Resource[];
+  logs: LogEntry[];
+  timer: TimerState;
+}
 
----
+interface Task {
+  id: number;
+  title: string;
+  status: 'todo' | 'doing' | 'blocked' | 'done';
+}
 
-## Frontend:
+interface Note {
+  id: number;
+  title: string;
+  content: string;
+  path?: string; // Relative file path for Obsidian & imported markdown files
+}
 
-* Avoid re-renders
-* Use memoization
+interface TimerState {
+  startedAt: number | null;
+  accumulated: number; // Elapsed seconds
+  activeTaskId: number | null;
+}
+```
 
 ---
 
-## Data Strategy:
+## 4. Key Architectural Patterns
 
-👉 Load only active project data
-
----
+1. **Single Active Task Rule**:
+   Only one task per workspace can hold `doing` status at a time. Selecting a new task to work on automatically transitions the previous active task back to `todo`.
 
-# 📌 10. Scalability Considerations
+2. **Cross-Workspace Timer Persistence & Global Stats**:
+   When switching workspaces via `switchProject(id)`, running timer deltas are automatically flushed into the outgoing project's `accumulated` time, ensuring tracked session seconds are preserved across workspace context switches. Global `timeToday` and `tasksCompleted` are computed across all active projects combined.
 
----
+3. **Markdown Import & Obsidian Vault Sync**:
+   `scanMarkdownFilesFromDir()` and `scanMarkdownFromFiles()` recursively traverse selected local directories or Obsidian vaults, preserving nested relative paths (`docs/api.md`), filtering out hidden folders (`.git`, `.obsidian`), and importing Markdown documents into the project workspace.
 
-* Modular services
-* Clean separation
-* Extendable schema
+4. **Dual-Mode Markdown Renderer**:
+   `NoteEditor.jsx` features a built-in custom Markdown parser supporting headers (H1-H4), fenced code blocks, inline code, bold/italic formatting, links, lists, blockquotes, horizontal rules, and paragraph formatting, with an instant `Edit Markdown` ↔ `Live Preview` mode toggle.
 
 ---
-
-# 📌 11. Security Considerations
 
----
+## 5. File System Access API & Local Sync
 
-* Validate inputs
-* Sanitize markdown
-* Prevent injection
+When a workspace is linked to a local folder:
+- **Project Snapshot**: Saved to `.devflow/project.json` inside the selected folder.
+- **Granular Notes**: Written as individual `.md` files in `.devflow/notes/`.
+- **Handle Persistence**: Folder handles (`FileSystemDirectoryHandle`) are stored in browser `IndexedDB` (`devflow-fs` database) to maintain directory access permission across tab reloads.
 
 ---
 
-# 📌 12. Future Architecture Extensions
-
----
+## 6. Directory Structure Overview
 
-* Tauri integration (system access)
-* API layer expansion
-* Git-based logging
-* Advanced insights (in-context only)
+```
+frontend/src/
+├── app/layout/             # DashboardLayout, WorkspaceHeader
+├── components/ui/          # Badge, Button, Input, Card
+├── features/               # Self-contained feature components
+│   ├── tasks/
+│   ├── tracking/
+│   ├── notes/
+│   ├── commands/
+│   ├── resources/
+│   └── logs/
+├── pages/dashboard/        # DashboardPage orchestrator
+├── services/               # fileSystemService.js
+└── store/                  # useWorkspaceStore.js
+```

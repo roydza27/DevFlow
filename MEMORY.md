@@ -1,6 +1,6 @@
 # MEMORY.md — DevFlow Project Memory
 
-_Last updated: 2026-07-30 (session 15 — center column layout & notes expansion fix complete)_
+_Last updated: 2026-07-30 (session 16 — README and main docs complete)_
 
 ---
 
@@ -10,7 +10,7 @@ Build **DevFlow** — a local-first developer workspace that helps developers in
 
 Principle: **Resume → Focus → Execute → Log → Continue → Track**
 
-Current session: Fixed center column layout in `DashboardLayout.jsx`. Collapsing the timer focus panel (`ChevronUp`) now automatically expands the Notes workspace to fill the full remaining center height (`flex-1`), preventing empty void spaces. Added restore button (`Minimize2`) to restore the focus panel smoothly. Verified build clean.
+Current session: Created comprehensive root `README.md` and updated system documentation. Rewrote `docs/Architecture.md` to reflect React 18, Zustand, and File System Access API stack. Created `backend/README.md` explaining dormant status. Archived obsolete task lists (`FrontendTasks-1.md`, `Frontendtasks-2.md`) to `docs/archive/`. Verified build clean.
 
 ---
 
@@ -187,6 +187,11 @@ docs/Frontendtasks-2.md                         ← task list (phase 2)
   - Added `Clear done (N)` bulk cleanup action button to `TaskSection.jsx` header.
   - Refactored `RightSidebar.jsx` dividers (`h-px bg-outline-variant/40`) for clear visual section separation.
   - Fixed Center Column Layout (`DashboardLayout.jsx`): resolved void space layout bug where collapsing the timer focus panel left notes at a fixed bottom height; notes now dynamically expand to full height (`flex-1`) whenever the focus panel is collapsed.
+- **Documentation & Project Cleanup (session 16)**:
+  - Created root [`README.md`](../README.md) with vision, tech stack, layout diagram, quick start guide, and directory structure.
+  - Rewrote [`docs/Architecture.md`](../docs/Architecture.md) to accurately document the React 18, Zustand, Local-First, and File System Access API stack.
+  - Created [`backend/README.md`](../backend/README.md) documenting dormant REST API status.
+  - Moved completed task docs `FrontendTasks-1.md` and `Frontendtasks-2.md` to `docs/archive/`.
   - Upgraded `LogsPanel.jsx`: removed 160px max-height cap, doubled scroll container viewport up to 320px with flex-1 expansion, and added instant category filter tabs (`ALL`, `USER`, `SYSTEM`).
   - Visual hierarchy added to `LogItem.jsx` distinguishing automated system logs from user activity.
   - Global `timeToday` & `tasksCompleted` calculated across all workspaces combined.
