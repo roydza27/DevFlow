@@ -43,7 +43,6 @@ export default function NotesSidebar({
           await onSyncObsidian(handle)
         }
       } else {
-        // Fallback to hidden input if API unavailable
         fileInputRef.current?.click()
       }
     } catch {
@@ -66,7 +65,7 @@ export default function NotesSidebar({
   }
 
   return (
-    <div className={`flex flex-col shrink-0 border-r border-outline-variant overflow-hidden ${expanded ? 'w-60' : 'w-48'}`}>
+    <div className={`flex flex-col shrink-0 border-r border-outline-variant/60 overflow-hidden h-full ${expanded ? 'w-64' : 'w-52'}`}>
       {/* Hidden file input for directory/file selection fallback */}
       <input
         ref={fileInputRef}

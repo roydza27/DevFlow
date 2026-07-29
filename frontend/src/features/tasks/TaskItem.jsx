@@ -1,6 +1,13 @@
 import { useState } from 'react'
-import { Check, Ban, Pencil, Trash2 } from 'lucide-react'
+import { Check, Ban, Pencil, Trash2, Undo } from 'lucide-react'
 import Badge from '../../components/ui/Badge'
+
+const STATUS_LABEL = {
+  doing: 'Active',
+  todo: 'Pending',
+  blocked: 'Blocked',
+  done: 'Done',
+}
 
 export default function TaskItem({ task, onSelect, onDone, onBlock, onEdit, onDelete }) {
   const [editing, setEditing] = useState(false)
@@ -39,8 +46,8 @@ export default function TaskItem({ task, onSelect, onDone, onBlock, onEdit, onDe
         />
       ) : (
         <button
-          onClick={() => onSelect(task)}
-          className="flex-1 text-left min-w-0"
+          onClick={() => task.status !== 'done' && onSelect(task)}
+          className={`flex-1 text-left min-w-0 ${task.status === 'done' ? 'cursor-default' : 'cursor-pointer'}`}
         >
           <span className={`text-sm font-body truncate block ${task.status === 'done' ? 'line-through text-outline' : 'text-on-surface'}`}>
             {task.title}
@@ -49,20 +56,33 @@ export default function TaskItem({ task, onSelect, onDone, onBlock, onEdit, onDe
       )}
 
       <div className="flex items-center gap-1 shrink-0">
-        <Badge variant={task.status}>{task.status}</Badge>
+        <Badge variant={task.status}>{STATUS_LABEL[task.status] ?? task.status}</Badge>
 
         {/* Inline actions – visible on hover */}
         <div className="hidden group-hover:flex items-center gap-0.5 ml-1">
+          {/* Un-block action for blocked tasks */}
+          {task.status === 'blocked' && (
+            <button
+              onClick={() => onSelect(task)}
+              title="Restore to Active"
+              className="p-1 rounded text-outline hover:text-tertiary transition-colors"
+            >
+              <Undo size={13} />
+            </button>
+          )}
+
           {task.status !== 'done' && (
             <button onClick={() => onDone(task.id)} title="Mark done" className="p-1 rounded text-outline hover:text-tertiary transition-colors">
               <Check size={13} />
             </button>
           )}
+
           {task.status !== 'blocked' && task.status !== 'done' && (
-            <button onClick={() => onBlock(task.id)} title="Block" className="p-1 rounded text-outline hover:text-error transition-colors">
+            <button onClick={() => onBlock(task.id)} title="Block task" className="p-1 rounded text-outline hover:text-error transition-colors">
               <Ban size={13} />
             </button>
           )}
+
           <button onClick={() => setEditing(true)} title="Edit" className="p-1 rounded text-outline hover:text-primary transition-colors">
             <Pencil size={13} />
           </button>

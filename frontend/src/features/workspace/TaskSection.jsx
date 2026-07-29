@@ -1,5 +1,6 @@
 import TaskQuickAdd from '../tasks/TaskQuickAdd'
 import TaskItem from '../tasks/TaskItem'
+import { Trash2 } from 'lucide-react'
 
 export default function TaskSection({
   tasks,
@@ -17,9 +18,25 @@ export default function TaskSection({
 
   const taskItemProps = { onSelect: onTaskSelect, onDone: onTaskDone, onBlock: onTaskBlock, onEdit: onTaskEdit, onDelete: onTaskDelete }
 
+  function handleClearDone() {
+    doneTasks.forEach(task => onTaskDelete(task.id))
+  }
+
   return (
     <div className="flex flex-col gap-3 h-full">
-      <h2 className="text-xs font-label font-semibold uppercase tracking-widest text-outline">Tasks</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-label font-semibold uppercase tracking-widest text-outline">Tasks</h2>
+        {doneTasks.length > 0 && (
+          <button
+            onClick={handleClearDone}
+            className="flex items-center gap-1 text-[11px] font-label text-outline hover:text-error transition-colors"
+            title="Clear all completed tasks"
+          >
+            <Trash2 size={11} />
+            <span>Clear done ({doneTasks.length})</span>
+          </button>
+        )}
+      </div>
 
       <TaskQuickAdd onAdd={onTaskAdd} />
 

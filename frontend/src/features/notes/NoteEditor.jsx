@@ -70,9 +70,11 @@ export default function NoteEditor({ note, onChange, expanded = false }) {
   useEffect(() => {
     if (!editorRef.current || !note || isPreview) return
     const content = note.content ?? ''
-    editorRef.current.innerText = content
+    if (editorRef.current.innerText !== content) {
+      editorRef.current.innerText = content
+    }
     editorRef.current.dataset.empty = content.trim() === '' ? 'true' : 'false'
-  }, [note?.id, isPreview])
+  }, [note?.id, note?.content, isPreview])
 
   if (!note) {
     return (

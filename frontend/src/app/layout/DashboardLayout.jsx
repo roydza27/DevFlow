@@ -158,10 +158,10 @@ export default function DashboardLayout({
 
           {/* Focus panel: slim bar when collapsed OR when notes are expanded to center */}
           {(focusCollapsed || notesExpanded) ? (
-            <div className="flex items-center gap-3 px-4 py-2 border-b border-outline-variant shrink-0">
+            <div className="flex items-center gap-3 px-4 py-2 border-b border-outline-variant shrink-0 bg-surface-container/20">
               <Timer size={13} className="text-outline shrink-0" />
               <span className="text-xs text-outline font-label flex-1 truncate">
-                {activeTask ? activeTask.title : 'No task'}
+                {activeTask ? activeTask.title : 'No task active'}
               </span>
               {!notesExpanded && (
                 <button
@@ -188,32 +188,43 @@ export default function DashboardLayout({
             </div>
           )}
 
-          {/* Notes panel — expanded (takes full center) OR fixed height at bottom */}
-          {notesExpanded ? (
+          {/* Notes panel — expanded (takes full center) OR flex-1 when focus is collapsed OR fixed height */}
+          {notesExpanded || focusCollapsed ? (
             <div className="flex-1 flex flex-col border-t border-outline-variant overflow-hidden min-h-0">
               {/* Notes header */}
-              <div className="flex items-center justify-between px-3 py-1.5 shrink-0 border-b border-outline-variant">
+              <div className="flex items-center justify-between px-3 py-1.5 shrink-0 border-b border-outline-variant bg-surface-container/30">
                 <div className="flex items-center gap-1.5">
                   <NotebookPen size={12} className="text-outline" />
                   <span className="text-xs font-label uppercase tracking-widest text-outline">Notes</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => { setNotesExpanded(false); setFocusCollapsed(false) }}
-                    className="p-0.5 rounded text-outline hover:text-on-surface transition-colors"
-                    title="Restore focus panel"
-                  >
-                    <Minimize2 size={13} />
-                  </button>
+                  {focusCollapsed && !notesExpanded && (
+                    <button
+                      onClick={() => setFocusCollapsed(false)}
+                      className="p-0.5 rounded text-outline hover:text-on-surface transition-colors text-xs flex items-center gap-1"
+                      title="Show timer focus panel"
+                    >
+                      <Minimize2 size={13} />
+                    </button>
+                  )}
+                  {notesExpanded && (
+                    <button
+                      onClick={() => { setNotesExpanded(false); setFocusCollapsed(false) }}
+                      className="p-0.5 rounded text-outline hover:text-on-surface transition-colors"
+                      title="Restore focus panel"
+                    >
+                      <Minimize2 size={13} />
+                    </button>
+                  )}
                 </div>
               </div>
               {/* Notes content — full height */}
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden p-2">
                 {React.cloneElement(notesPanel, { expanded: true })}
               </div>
             </div>
           ) : (
-            /* Fixed height notes at bottom */
+            /* Fixed height notes at bottom when focus panel is visible */
             <div
               style={{ height: effectiveNotesHeight }}
               className="shrink-0 flex flex-col border-t border-outline-variant overflow-hidden"

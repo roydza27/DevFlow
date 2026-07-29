@@ -2,12 +2,9 @@ import { useState } from 'react'
 import LogItem from './LogItem'
 import Input from '../../components/ui/Input'
 
-function formatTime(date) {
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
 export default function LogsPanel({ logs = [], onLog, showAdd, onAddDone }) {
   const [input, setInput] = useState('')
+  const [filter, setFilter] = useState('all') // 'all' | 'user' | 'system'
 
   function handleKeyDown(e) {
     if (e.key === 'Enter' && input.trim()) {
@@ -18,8 +15,36 @@ export default function LogsPanel({ logs = [], onLog, showAdd, onAddDone }) {
     if (e.key === 'Escape') { setInput(''); onAddDone?.() }
   }
 
+  const isSystemLog = log => log.message?.startsWith('Switched to:') || log.message?.startsWith('Timer') || log.message?.startsWith('Workspace')
+
+  const filteredLogs = logs.filter(log => {
+    if (filter === 'user') return !isSystemLog(log)
+    if (filter === 'system') return isSystemLog(log)
+    return true
+  })
+
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2 flex-1 min-h-0">
+      {/* Filter Tabs & Count */}
+      <div className="flex items-center justify-between gap-1">
+        <div className="flex gap-1">
+          {['all', 'user', 'system'].map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-2 py-0.5 rounded text-[10px] font-label uppercase tracking-wider transition-colors ${
+                filter === f
+                  ? 'bg-primary-container text-on-primary-container font-semibold'
+                  : 'bg-surface-container-high text-outline hover:text-on-surface'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+        <span className="text-[10px] text-outline font-mono">{filteredLogs.length} logs</span>
+      </div>
+
       {showAdd && (
         <Input
           autoFocus
@@ -29,11 +54,13 @@ export default function LogsPanel({ logs = [], onLog, showAdd, onAddDone }) {
           placeholder="Log activity… (Enter)"
         />
       )}
-      <div className="flex flex-col gap-1 overflow-y-auto hide-scrollbar max-h-40">
-        {logs.length === 0 && (
-          <p className="text-xs text-outline">No activity yet</p>
+
+      {/* Flexible scroll container without artificial max-h cap */}
+      <div className="flex flex-col gap-1 overflow-y-auto hide-scrollbar flex-1 min-h-[140px] max-h-[320px] pr-0.5">
+        {filteredLogs.length === 0 && (
+          <p className="text-xs text-outline py-2 text-center">No logs found</p>
         )}
-        {logs.map(log => (
+        {filteredLogs.map(log => (
           <LogItem key={log.id} log={log} />
         ))}
       </div>

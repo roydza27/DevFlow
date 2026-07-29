@@ -35,7 +35,7 @@ export default function RightSidebar({
         />
       </CollapsibleSection>
 
-      <div className="border-t border-outline-variant" />
+      <div className="h-px bg-outline-variant/40 my-1" />
 
       <CollapsibleSection
         title="Resources"
@@ -52,7 +52,7 @@ export default function RightSidebar({
         />
       </CollapsibleSection>
 
-      <div className="border-t border-outline-variant" />
+      <div className="h-px bg-outline-variant/40 my-1" />
 
       <CollapsibleSection
         title="Logs"
