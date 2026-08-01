@@ -28,8 +28,8 @@ export default function DashboardLayout({
   notesPanel,
   footerProps,
 }) {
-  const [leftWidth, setLeftWidth] = useState(288)
-  const [rightWidth, setRightWidth] = useState(260)
+  const [leftWidth, setLeftWidth] = useState(340)
+  const [rightWidth, setRightWidth] = useState(320)
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [rightCollapsed, setRightCollapsed] = useState(false)
   const [notesHeight, setNotesHeight] = useState(NOTES_DEFAULT)

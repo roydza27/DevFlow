@@ -55,7 +55,12 @@ export default function TaskItem({ task, onSelect, onDone, onBlock, onEdit, onDe
         </button>
       )}
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0">
+        {(task.totalTime || task.accumulatedSeconds) > 0 && (
+          <span className="text-[10px] font-mono text-outline/80 bg-surface-container/80 px-1.5 py-0.5 rounded border border-outline-variant/40">
+            {Math.floor(((task.totalTime || task.accumulatedSeconds) || 0) / 60)}m
+          </span>
+        )}
         <Badge variant={task.status}>{STATUS_LABEL[task.status] ?? task.status}</Badge>
 
         {/* Inline actions – visible on hover */}

@@ -1,15 +1,28 @@
 import TimerDisplay from './TimerDisplay'
 import Button from '../../components/ui/Button'
 
-export default function FocusPanel({ activeTask, elapsed, isRunning, onStart, onStop, tasksCompleted, timeToday }) {
+export default function FocusPanel({
+  activeTask,
+  elapsed,
+  isRunning,
+  onStart,
+  onStop,
+  taskTotalFormatted = '0h 00m',
+  workspaceTimeToday = '0h 00m',
+  tasksCompleted = 0,
+  globalTimeToday = '0h 00m',
+}) {
   return (
-    <div className="flex flex-col items-center justify-center gap-6 h-full">
+    <div className="flex flex-col items-center justify-center gap-5 h-full">
       {/* Active task title */}
-      <div className="text-center max-w-sm">
+      <div className="text-center max-w-md">
         {activeTask ? (
-          <h1 className="font-headline text-2xl font-semibold text-on-surface leading-snug">
-            {activeTask.title}
-          </h1>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[11px] uppercase tracking-widest text-tertiary font-label font-semibold">Working On</span>
+            <h1 className="font-headline text-2xl font-semibold text-on-surface leading-snug">
+              {activeTask.title}
+            </h1>
+          </div>
         ) : (
           <div className="flex flex-col items-center gap-1">
             <h1 className="font-headline text-xl font-medium text-outline">No task selected</h1>
@@ -22,7 +35,7 @@ export default function FocusPanel({ activeTask, elapsed, isRunning, onStart, on
       <div className="flex flex-col items-center gap-1">
         <TimerDisplay seconds={elapsed} />
         {isRunning && (
-          <span className="text-xs font-label text-tertiary uppercase tracking-widest animate-pulse">
+          <span className="text-xs font-label text-tertiary uppercase tracking-widest animate-pulse font-medium">
             running
           </span>
         )}
@@ -41,15 +54,23 @@ export default function FocusPanel({ activeTask, elapsed, isRunning, onStart, on
         )}
       </div>
 
-      {/* Session insights */}
-      <div className="flex gap-8 pt-4 border-t border-outline-variant w-full max-w-xs justify-center">
-        <div className="text-center">
-          <p className="text-xs text-outline font-label uppercase tracking-wider mb-0.5">Time Today</p>
-          <p className="text-sm font-semibold text-on-surface-variant tabular-nums">{timeToday}</p>
+      {/* Synchronized Session Insights Grid */}
+      <div className="grid grid-cols-4 gap-4 pt-4 border-t border-outline-variant/60 w-full max-w-md text-center">
+        <div>
+          <p className="text-[10px] text-outline font-label uppercase tracking-wider mb-0.5">Task Total</p>
+          <p className="text-xs font-bold text-on-surface tabular-nums font-mono">{taskTotalFormatted}</p>
         </div>
-        <div className="text-center">
-          <p className="text-xs text-outline font-label uppercase tracking-wider mb-0.5">Completed</p>
-          <p className="text-sm font-semibold text-on-surface-variant tabular-nums">{tasksCompleted}</p>
+        <div>
+          <p className="text-[10px] text-outline font-label uppercase tracking-wider mb-0.5">Workspace</p>
+          <p className="text-xs font-bold text-on-surface tabular-nums font-mono">{workspaceTimeToday}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-outline font-label uppercase tracking-wider mb-0.5">Global Total</p>
+          <p className="text-xs font-bold text-primary tabular-nums font-mono">{globalTimeToday}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-outline font-label uppercase tracking-wider mb-0.5">Done</p>
+          <p className="text-xs font-bold text-on-surface-variant tabular-nums font-mono">{tasksCompleted}</p>
         </div>
       </div>
     </div>

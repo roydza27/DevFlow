@@ -25,8 +25,10 @@ export default function Workspace({
   onTaskBlock,
   onTaskEdit,
   onTaskDelete,
+  onClearDoneUI,
   tasksCompleted,
   timeToday,
+  taskTotalFormatted,
   logs,
   onLog,
   onLogClear,
@@ -66,6 +68,7 @@ export default function Workspace({
           onTaskBlock={onTaskBlock}
           onTaskEdit={onTaskEdit}
           onTaskDelete={onTaskDelete}
+          onClearDoneUI={onClearDoneUI}
         />
       }
       centerPanel={
@@ -75,8 +78,10 @@ export default function Workspace({
           isRunning={isRunning}
           onStart={onStart}
           onStop={onStop}
-          tasksCompleted={globalTasksCompleted ?? tasksCompleted}
-          timeToday={globalTimeToday ?? timeToday}
+          taskTotalFormatted={taskTotalFormatted}
+          workspaceTimeToday={timeToday}
+          tasksCompleted={tasksCompleted}
+          globalTimeToday={globalTimeToday}
         />
       }
       rightPanel={
@@ -104,7 +109,12 @@ export default function Workspace({
           onImportFileList={onNoteImportFileList}
         />
       }
-      footerProps={{ tasksCompleted: globalTasksCompleted ?? tasksCompleted, timeToday: globalTimeToday ?? timeToday }}
+      footerProps={{
+        tasksCompleted,
+        timeToday,
+        globalTasksCompleted,
+        globalTimeToday
+      }}
     />
   )
 }
