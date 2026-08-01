@@ -1,13 +1,10 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { api } from '../services/apiClient'
 import {
   getDirHandle,
   setDirHandle,
   saveHandleToIDB,
   removeHandleFromIDB,
-  writeProjectToDir,
-  writeNoteToDir,
-  deleteNoteFromDir,
   scanMarkdownFilesFromDir,
   scanMarkdownFromFiles,
 } from '../services/fileSystemService'
@@ -22,470 +19,543 @@ function ts() {
 }
 
 function mkLog(message, type = 'info') {
-  return { id: Date.now() + Math.random(), message, type, timestamp: ts() }
+  return { id: String(Date.now() + Math.random()), message, type, timestamp: ts() }
 }
 
 function mkTimer() {
   return { startedAt: null, accumulated: 0, activeTaskId: null }
 }
 
-// ─── FS sync helper ───────────────────────────────────────────────────────────
-// Fire-and-forget: write the latest project snapshot to its linked folder (if any).
-
-function syncProject(projectId) {
-  const handle = getDirHandle(projectId)
-  if (!handle) return
-  // Read the latest state directly from the store after current tick
-  setTimeout(() => {
-    const project = useWorkspaceStore.getState().projects.find(p => p.id === projectId)
-    if (project) writeProjectToDir(handle, project).catch(() => {})
-  }, 0)
-}
-
-// ─── initial state ────────────────────────────────────────────────────────────
-// New installs start empty. Returning users restore from localStorage via
-// the persist middleware's merge function below.
-
-// ─── normaliser (schema migration guard) ────────────────────────────────────
-
 function normalizeProject(p) {
+  const projId = isNaN(Number(p.id)) ? p.id : Number(p.id);
+  const tasks = (p.tasks ?? []).map(t => ({
+    ...t,
+    id: isNaN(Number(t.id)) ? t.id : Number(t.id),
+    totalTime: t.totalTime ?? t.accumulatedSeconds ?? 0,
+    startedAt: t.startedAt ?? null,
+    isRunning: Boolean(t.isRunning),
+  }));
+
   return {
     ...p,
+    id: projId,
     linkedFolderName: p.linkedFolderName ?? null,
     notes: p.notes ?? [],
     commands: p.commands ?? [],
     resources: p.resources ?? [],
     logs: p.logs ?? [],
-    tasks: p.tasks ?? [],
-    timer: p.timer ? { ...mkTimer(), ...p.timer } : mkTimer(),
+    tasks,
   }
 }
 
 // ─── store ───────────────────────────────────────────────────────────────────
 
-export const useWorkspaceStore = create(
-  persist(
-    (set, get) => ({
-      projects: [],
-      activeProjectId: null,
+export const useWorkspaceStore = create((set, get) => ({
+  projects: [],
+  activeProjectId: null,
+  isLoading: false,
+  error: null,
 
-      // ── internal helpers ────────────────────────────────────────────────
+  // ── fetch initial state from REST API ─────────────────────────────
 
-      _patch(projectId, updater) {
-        set(state => ({
-          projects: state.projects.map(p => p.id === projectId ? updater(p) : p),
-        }))
-      },
+  async fetchProjects() {
+    set({ isLoading: true, error: null })
+    try {
+      const data = await api.getProjects()
+      const projects = (data || []).map(normalizeProject)
+      const currentActive = get().activeProjectId
+      const activeExists = projects.some(p => p.id === currentActive)
+      set({
+        projects,
+        activeProjectId: activeExists ? currentActive : (projects[0]?.id ?? null),
+        isLoading: false,
+      })
+    } catch (err) {
+      console.warn('[WorkspaceStore] API fetch failed, falling back to empty state:', err.message)
+      set({ isLoading: false, error: err.message })
+    }
+  },
 
-      _log(projectId, message, type = 'info') {
-        get()._patch(projectId, p => ({
-          ...p,
-          logs: [mkLog(message, type), ...p.logs].slice(0, 200),
-        }))
-      },
+  // ── internal helpers ────────────────────────────────────────────────
 
-      // ── project actions ─────────────────────────────────────────────────
+  _patch(projectId, updater) {
+    set(state => ({
+      projects: state.projects.map(p => p.id === projectId ? updater(p) : p),
+    }))
+  },
 
-      /**
-       * Creates a new project. Optionally links a directory handle.
-       * @param {string} name
-       * @param {FileSystemDirectoryHandle|null} dirHandle
-       */
-      createProject(name, dirHandle = null) {
-        const trimmed = name.trim()
-        if (!trimmed) return
-        const id = Date.now()
-        const folderName = dirHandle?.name ?? null
-        const project = {
-          id,
-          name: trimmed,
-          lastAccessed: Date.now(),
-          linkedFolderName: folderName,
-          tasks: [],
-          notes: [{ id: id + 1, title: 'Project Notes', content: '' }],
-          commands: [],
-          resources: [],
-          logs: [mkLog(
-            folderName
-              ? `Workspace created — linked to folder: ${folderName}`
-              : 'Workspace created',
-            'success',
-          )],
-          timer: mkTimer(),
-        }
-        set(state => ({
-          projects: [...state.projects, project],
-          activeProjectId: id,
-        }))
-        if (dirHandle) {
-          setDirHandle(id, dirHandle)
-          saveHandleToIDB(id, dirHandle).catch(() => {})
-          syncProject(id)
-        }
-      },
+  _log(projectId, message, type = 'info') {
+    const log = mkLog(message, type)
+    get()._patch(projectId, p => ({
+      ...p,
+      logs: [log, ...p.logs].slice(0, 200),
+    }))
+    api.addLog(projectId, log).catch(() => {})
+  },
 
-      /**
-       * Link (or re-link) a directory handle to an existing project.
-       * @param {number} projectId
-       * @param {FileSystemDirectoryHandle} dirHandle
-       */
-      linkFolder(projectId, dirHandle) {
-        if (!dirHandle) return
-        setDirHandle(projectId, dirHandle)
-        saveHandleToIDB(projectId, dirHandle).catch(() => {})
-        get()._patch(projectId, p => ({
-          ...p,
-          linkedFolderName: dirHandle.name,
-          logs: [mkLog(`Folder linked: ${dirHandle.name}`, 'success'), ...p.logs].slice(0, 200),
-        }))
-        syncProject(projectId)
-      },
+  // ── project actions ─────────────────────────────────────────────────
 
-      /**
-       * Unlink the directory from a project (keeps localStorage data).
-       * @param {number} projectId
-       */
-      unlinkFolder(projectId) {
-        setDirHandle(projectId, null)
-        removeHandleFromIDB(projectId).catch(() => {})
-        get()._patch(projectId, p => ({
-          ...p,
-          linkedFolderName: null,
-          logs: [mkLog('Folder unlinked', 'info'), ...p.logs].slice(0, 200),
-        }))
-      },
+  async createProject(name, dirHandle = null) {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    const id = Date.now()
+    const folderName = dirHandle?.name ?? null
+    const newProjData = {
+      id,
+      name: trimmed,
+      linkedFolderName: folderName,
+      folderPath: folderName, // If supported locally
+    }
 
-      switchProject(id) {
-        const { projects, activeProjectId } = get()
-        if (id === activeProjectId) return
-        const project = projects.find(p => p.id === id)
-        if (!project) return
+    // Optimistic UI Update
+    const project = {
+      ...newProjData,
+      lastAccessed: Date.now(),
+      tasks: [],
+      notes: [{ id: `${id}-1`, title: 'Project Notes', content: '' }],
+      commands: [],
+      resources: [],
+      logs: [mkLog(folderName ? `Workspace created — linked to folder: ${folderName}` : 'Workspace created', 'success')],
+      timer: mkTimer(),
+    }
 
-        // Flush active running timer in old project if running
-        const currentActive = projects.find(p => p.id === activeProjectId)
-        if (currentActive?.timer?.startedAt) {
-          const extra = Math.floor((Date.now() - currentActive.timer.startedAt) / 1000)
-          get()._patch(activeProjectId, p => ({
-            ...p,
-            timer: {
-              ...p.timer,
-              startedAt: Date.now(), // keep running timestamp fresh for returning
-              accumulated: p.timer.accumulated + extra,
-            },
-          }))
-        }
+    set(state => ({
+      projects: [...state.projects, project],
+      activeProjectId: id,
+    }))
 
-        get()._patch(id, p => ({ ...p, lastAccessed: Date.now() }))
-        set({ activeProjectId: id })
-        get()._log(id, `Switched to: ${project.name}`, 'info')
-      },
+    if (dirHandle) {
+      setDirHandle(id, dirHandle)
+      saveHandleToIDB(id, dirHandle).catch(() => {})
+    }
 
-      renameProject(projectId, name) {
-        const trimmed = name.trim()
-        if (!trimmed) return
-        get()._patch(projectId, p => ({ ...p, name: trimmed }))
-        get()._log(projectId, `Workspace renamed to: ${trimmed}`, 'info')
-        syncProject(projectId)
-      },
+    try {
+      await api.createProject(newProjData)
+    } catch (err) {
+      console.error('Failed to create project via API:', err)
+    }
+  },
 
-      deleteProject(projectId) {
-        const { projects, activeProjectId } = get()
-        const remaining = projects.filter(p => p.id !== projectId)
-        // Switch to the most-recently-accessed remaining project, or null
-        const newActive = projectId === activeProjectId
-          ? (remaining.sort((a, b) => b.lastAccessed - a.lastAccessed)[0]?.id ?? null)
-          : activeProjectId
-        // Clean up any linked folder handles
-        setDirHandle(projectId, null)
-        removeHandleFromIDB(projectId).catch(() => {})
-        set({ projects: remaining, activeProjectId: newActive })
-      },
+  async linkFolder(projectId, dirHandle) {
+    if (!dirHandle) return
+    setDirHandle(projectId, dirHandle)
+    saveHandleToIDB(projectId, dirHandle).catch(() => {})
 
-      // ── task actions ────────────────────────────────────────────────────
+    get()._patch(projectId, p => ({
+      ...p,
+      linkedFolderName: dirHandle.name,
+      logs: [mkLog(`Folder linked: ${dirHandle.name}`, 'success'), ...p.logs].slice(0, 200),
+    }))
 
-      addTask(projectId, title) {
-        const task = { id: Date.now(), title, status: 'todo' }
-        get()._patch(projectId, p => ({ ...p, tasks: [...p.tasks, task] }))
-        get()._log(projectId, `Task created: ${title}`, 'info')
-        syncProject(projectId)
-      },
+    try {
+      await api.linkFolder(projectId, { folderPath: dirHandle.name, name: dirHandle.name })
+    } catch (err) {
+      console.error('Failed to link folder via API:', err)
+    }
+  },
 
-      selectTask(projectId, taskId) {
-        get()._patch(projectId, p => {
-          if (p.timer.activeTaskId === taskId && p.tasks.find(t => t.id === taskId)?.status === 'doing') {
-            return p
+  unlinkFolder(projectId) {
+    setDirHandle(projectId, null)
+    removeHandleFromIDB(projectId).catch(() => {})
+    get()._patch(projectId, p => ({
+      ...p,
+      linkedFolderName: null,
+      logs: [mkLog('Folder unlinked', 'info'), ...p.logs].slice(0, 200),
+    }))
+    api.updateProject(projectId, { linkedFolderName: null }).catch(() => {})
+  },
+
+  switchProject(id) {
+    const { projects, activeProjectId } = get()
+    if (id === activeProjectId) return
+    const project = projects.find(p => p.id === id)
+    if (!project) return
+
+    // Flush active running timer in old project if running
+    const currentActive = projects.find(p => p.id === activeProjectId)
+    if (currentActive?.timer?.startedAt) {
+      const extra = Math.floor((Date.now() - currentActive.timer.startedAt) / 1000)
+      const updatedTimer = {
+        ...currentActive.timer,
+        startedAt: Date.now(),
+        accumulated: currentActive.timer.accumulated + extra,
+      }
+      get()._patch(activeProjectId, p => ({ ...p, timer: updatedTimer }))
+      api.updateTimer(activeProjectId, updatedTimer).catch(() => {})
+    }
+
+    const now = Date.now()
+    get()._patch(id, p => ({ ...p, lastAccessed: now }))
+    set({ activeProjectId: id })
+    get()._log(id, `Switched to: ${project.name}`, 'info')
+    api.updateProject(id, { lastAccessed: now }).catch(() => {})
+  },
+
+  async renameProject(projectId, name) {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    get()._patch(projectId, p => ({ ...p, name: trimmed }))
+    get()._log(projectId, `Workspace renamed to: ${trimmed}`, 'info')
+    try {
+      await api.updateProject(projectId, { name: trimmed })
+    } catch (err) {
+      console.error('Failed to rename project via API:', err)
+    }
+  },
+
+  async deleteProject(projectId) {
+    const { projects, activeProjectId } = get()
+    const remaining = projects.filter(p => p.id !== projectId)
+    const newActive = projectId === activeProjectId
+      ? (remaining.sort((a, b) => b.lastAccessed - a.lastAccessed)[0]?.id ?? null)
+      : activeProjectId
+
+    setDirHandle(projectId, null)
+    removeHandleFromIDB(projectId).catch(() => {})
+    set({ projects: remaining, activeProjectId: newActive })
+
+    try {
+      await api.deleteProject(projectId)
+    } catch (err) {
+      console.error('Failed to delete project via API:', err)
+    }
+  },
+
+  // ── task actions ────────────────────────────────────────────────────
+
+  // ── task actions ────────────────────────────────────────────────────
+
+  async addTask(projectId, title) {
+    const task = {
+      id: Date.now(),
+      title,
+      status: 'todo',
+      totalTime: 0,
+      startedAt: null,
+      isRunning: false,
+    }
+    get()._patch(projectId, p => ({ ...p, tasks: [...p.tasks, task] }))
+    get()._log(projectId, `Task created: ${title}`, 'info')
+    try {
+      await api.addTask(projectId, task)
+    } catch (err) {
+      console.error('Failed to add task via API:', err)
+    }
+  },
+
+  selectTask(projectId, taskId) {
+    const now = Date.now()
+    const updatedTasks = []
+
+    get()._patch(projectId, p => {
+      const activeTask = p.tasks.find(t => t.id === taskId)
+      if (!activeTask) return p
+
+      const newTasks = p.tasks.map(t => {
+        // Switch into active task: set doing, start task timer
+        if (t.id === taskId) {
+          const updated = {
+            ...t,
+            status: 'doing',
+            startedAt: now,
+            isRunning: true,
           }
-          return {
-            ...p,
-            tasks: p.tasks.map(t => {
-              if (t.id === taskId) return { ...t, status: 'doing' }
-              if (t.status === 'doing') return { ...t, status: 'todo' }
-              return t
-            }),
-            timer: { startedAt: null, accumulated: 0, activeTaskId: taskId },
-          }
-        })
-        const task = get().projects.find(p => p.id === projectId)?.tasks.find(t => t.id === taskId)
-        if (task) get()._log(projectId, `Active: ${task.title}`, 'info')
-        syncProject(projectId)
-      },
-
-      markTaskDone(projectId, taskId) {
-        const task = get().projects.find(p => p.id === projectId)?.tasks.find(t => t.id === taskId)
-        get()._patch(projectId, p => ({
-          ...p,
-          tasks: p.tasks.map(t => t.id === taskId ? { ...t, status: 'done' } : t),
-          timer: p.timer.activeTaskId === taskId
-            ? { startedAt: null, accumulated: 0, activeTaskId: null }
-            : p.timer,
-        }))
-        if (task) get()._log(projectId, `Done: ${task.title}`, 'success')
-        syncProject(projectId)
-      },
-
-      markTaskBlocked(projectId, taskId) {
-        const task = get().projects.find(p => p.id === projectId)?.tasks.find(t => t.id === taskId)
-        get()._patch(projectId, p => ({
-          ...p,
-          tasks: p.tasks.map(t => t.id === taskId ? { ...t, status: 'blocked' } : t),
-          timer: p.timer.activeTaskId === taskId
-            ? { startedAt: null, accumulated: 0, activeTaskId: null }
-            : p.timer,
-        }))
-        if (task) get()._log(projectId, `Blocked: ${task.title}`, 'warning')
-        syncProject(projectId)
-      },
-
-      editTask(projectId, taskId, title) {
-        get()._patch(projectId, p => ({
-          ...p,
-          tasks: p.tasks.map(t => t.id === taskId ? { ...t, title } : t),
-        }))
-        get()._log(projectId, `Task renamed: ${title}`, 'info')
-        syncProject(projectId)
-      },
-
-      deleteTask(projectId, taskId) {
-        const task = get().projects.find(p => p.id === projectId)?.tasks.find(t => t.id === taskId)
-        get()._patch(projectId, p => ({
-          ...p,
-          tasks: p.tasks.filter(t => t.id !== taskId),
-          timer: p.timer.activeTaskId === taskId
-            ? { startedAt: null, accumulated: 0, activeTaskId: null }
-            : p.timer,
-        }))
-        if (task) get()._log(projectId, `Task deleted: ${task.title}`, 'warning')
-        syncProject(projectId)
-      },
-
-      // ── timer actions ───────────────────────────────────────────────────
-
-      startTimer(projectId) {
-        const project = get().projects.find(p => p.id === projectId)
-        if (!project || project.timer.startedAt) return
-        const doingTask = project.tasks.find(t => t.status === 'doing')
-        const activeTaskId = project.timer.activeTaskId ?? doingTask?.id ?? null
-        get()._patch(projectId, p => ({
-          ...p,
-          timer: { ...p.timer, startedAt: Date.now(), activeTaskId },
-        }))
-        const task = project.tasks.find(t => t.id === activeTaskId)
-        if (task) get()._log(projectId, `Timer started: ${task.title}`, 'success')
-        syncProject(projectId)
-      },
-
-      stopTimer(projectId) {
-        const project = get().projects.find(p => p.id === projectId)
-        if (!project?.timer.startedAt) return
-        const extra = Math.floor((Date.now() - project.timer.startedAt) / 1000)
-        get()._patch(projectId, p => ({
-          ...p,
-          timer: { ...p.timer, startedAt: null, accumulated: p.timer.accumulated + extra },
-        }))
-        const task = project.tasks.find(t => t.id === project.timer.activeTaskId)
-        if (task) get()._log(projectId, `Timer stopped: ${task.title}`, 'info')
-        syncProject(projectId)
-      },
-
-      // ── note actions ────────────────────────────────────────────────────
-
-      addNote(projectId) {
-        const id = Date.now()
-        const project = get().projects.find(p => p.id === projectId)
-        const note = { id, title: `Note ${(project?.notes.length ?? 0) + 1}`, content: '' }
-        get()._patch(projectId, p => ({ ...p, notes: [...p.notes, note] }))
-        get()._log(projectId, `Note created: ${note.title}`, 'info')
-        // Write new empty note file
-        const handle = getDirHandle(projectId)
-        if (handle) writeNoteToDir(handle, note).catch(() => {})
-        return id
-      },
-
-      updateNote(projectId, noteId, content) {
-        get()._patch(projectId, p => ({
-          ...p,
-          notes: p.notes.map(n => n.id === noteId ? { ...n, content } : n),
-        }))
-        // Write only the changed note (debounced by NoteEditor already)
-        const handle = getDirHandle(projectId)
-        if (handle) {
-          const note = get().projects.find(p => p.id === projectId)?.notes.find(n => n.id === noteId)
-          if (note) writeNoteToDir(handle, note).catch(() => {})
+          updatedTasks.push(updated)
+          return updated
         }
-      },
 
-      renameNote(projectId, noteId, title) {
-        get()._patch(projectId, p => ({
-          ...p,
-          notes: p.notes.map(n => n.id === noteId ? { ...n, title } : n),
-        }))
-        // Title rename updates the notes-index; content unchanged
-        const handle = getDirHandle(projectId)
-        if (handle) {
-          const note = get().projects.find(p => p.id === projectId)?.notes.find(n => n.id === noteId)
-          if (note) writeNoteToDir(handle, note).catch(() => {})
-        }
-      },
-
-      deleteNote(projectId, noteId) {
-        get()._patch(projectId, p => ({
-          ...p,
-          notes: p.notes.filter(n => n.id !== noteId),
-        }))
-        const handle = getDirHandle(projectId)
-        if (handle) deleteNoteFromDir(handle, noteId).catch(() => {})
-      },
-
-      /**
-       * Scans the linked folder or an explicitly passed directory handle for all .md files (Obsidian/cloud notes)
-       * and imports or syncs them into the project workspace notes.
-       */
-      async syncObsidianFolder(projectId, customHandle = null) {
-        const handle = customHandle || getDirHandle(projectId)
-        if (!handle) return 0
-
-        const scannedNotes = await scanMarkdownFilesFromDir(handle)
-        if (scannedNotes.length === 0) return 0
-
-        get()._patch(projectId, p => {
-          const existingMap = new Map(p.notes.map(n => [n.path || n.title, n]))
-          const updatedNotes = [...p.notes]
-
-          scannedNotes.forEach(scanned => {
-            const key = scanned.path || scanned.title
-            if (existingMap.has(key)) {
-              // Update existing note content
-              const target = existingMap.get(key)
-              target.content = scanned.content
-            } else {
-              // Add newly found markdown file
-              updatedNotes.push(scanned)
-            }
-          })
-
-          return { ...p, notes: updatedNotes }
-        })
-
-        get()._log(projectId, `Synced ${scannedNotes.length} markdown note(s) from folder`, 'success')
-        return scannedNotes.length
-      },
-
-      /**
-       * Direct import from HTML5 FileList / directory picker input
-       */
-      async importMarkdownFileList(projectId, fileList) {
-        const scannedNotes = await scanMarkdownFromFiles(fileList)
-        if (scannedNotes.length === 0) return 0
-
-        get()._patch(projectId, p => {
-          const existingMap = new Map(p.notes.map(n => [n.path || n.title, n]))
-          const updatedNotes = [...p.notes]
-
-          scannedNotes.forEach(scanned => {
-            const key = scanned.path || scanned.title
-            if (existingMap.has(key)) {
-              const target = existingMap.get(key)
-              target.content = scanned.content
-            } else {
-              updatedNotes.push(scanned)
-            }
-          })
-
-          return { ...p, notes: updatedNotes }
-        })
-
-        get()._log(projectId, `Imported ${scannedNotes.length} markdown file(s)`, 'success')
-        return scannedNotes.length
-      },
-
-      // ── command actions ─────────────────────────────────────────────────
-
-      addCommand(projectId, label, command) {
-        const cmd = { id: Date.now(), label, command }
-        get()._patch(projectId, p => ({ ...p, commands: [...p.commands, cmd] }))
-        get()._log(projectId, `Command added: ${label}`, 'info')
-        syncProject(projectId)
-      },
-
-      deleteCommand(projectId, cmdId) {
-        const cmd = get().projects.find(p => p.id === projectId)?.commands.find(c => c.id === cmdId)
-        get()._patch(projectId, p => ({ ...p, commands: p.commands.filter(c => c.id !== cmdId) }))
-        if (cmd) get()._log(projectId, `Command removed: ${cmd.label}`, 'warning')
-        syncProject(projectId)
-      },
-
-      // ── resource actions ────────────────────────────────────────────────
-
-      addResource(projectId, title, url, type) {
-        const res = { id: Date.now(), title, url: url || '#', type }
-        get()._patch(projectId, p => ({ ...p, resources: [...p.resources, res] }))
-        get()._log(projectId, `Resource added: ${title}`, 'info')
-        syncProject(projectId)
-      },
-
-      deleteResource(projectId, resId) {
-        const res = get().projects.find(p => p.id === projectId)?.resources.find(r => r.id === resId)
-        get()._patch(projectId, p => ({ ...p, resources: p.resources.filter(r => r.id !== resId) }))
-        if (res) get()._log(projectId, `Resource removed: ${res.title}`, 'warning')
-        syncProject(projectId)
-      },
-
-      // ── manual log ──────────────────────────────────────────────────────
-
-      addLog(projectId, message, type = 'info') {
-        get()._log(projectId, message, type)
-        syncProject(projectId)
-      },
-
-      clearLogs(projectId) {
-        get()._patch(projectId, p => ({ ...p, logs: [] }))
-        syncProject(projectId)
-      },
-    }),
-
-    {
-      name: 'devflow_projects',
-      merge: (stored, initial) => {
-        try {
-          if (!stored || !Array.isArray(stored.projects)) {
-            return initial
+        // Pause any previously running task
+        if (t.isRunning || t.status === 'doing') {
+          let extra = 0
+          if (t.isRunning && t.startedAt) {
+            extra = Math.floor((now - t.startedAt) / 1000)
           }
-          const projects = stored.projects.map(normalizeProject)
-          // Validate that activeProjectId still refers to an existing project
-          const activeExists = projects.some(p => p.id === stored.activeProjectId)
-          return {
-            ...initial,
-            ...stored,
-            projects,
-            activeProjectId: activeExists ? stored.activeProjectId : (projects[0]?.id ?? null),
+          const updated = {
+            ...t,
+            status: 'todo',
+            totalTime: (t.totalTime || 0) + extra,
+            startedAt: null,
+            isRunning: false,
           }
-        } catch {
-          return initial
+          updatedTasks.push(updated)
+          return updated
         }
-      },
-    },
-  ),
-)
+
+        return t
+      })
+
+      return { ...p, tasks: newTasks }
+    })
+
+    const selected = get().projects.find(p => p.id === projectId)?.tasks.find(t => t.id === taskId)
+    if (selected) get()._log(projectId, `Active & Timer Started: ${selected.title}`, 'info')
+
+    updatedTasks.forEach(t => {
+      api.updateTask(t.id, {
+        status: t.status,
+        totalTime: t.totalTime,
+        startedAt: t.startedAt,
+        isRunning: t.isRunning,
+      }).catch(() => {})
+    })
+  },
+
+  clearDoneUI(projectId) {
+    get()._patch(projectId, p => ({
+      ...p,
+      tasks: p.tasks.map(t => t.status === 'done' ? { ...t, status: 'archived' } : t)
+    }))
+    api.clearDoneTasks(projectId).catch(() => {})
+  },
+
+  markTaskDone(projectId, taskId) {
+    const now = Date.now()
+    let targetTask = null
+
+    get()._patch(projectId, p => {
+      const task = p.tasks.find(t => t.id === taskId)
+      if (!task) return p
+
+      let extra = 0
+      if (task.isRunning && task.startedAt) {
+        extra = Math.floor((now - task.startedAt) / 1000)
+      }
+
+      targetTask = {
+        ...task,
+        status: 'done',
+        totalTime: (task.totalTime || 0) + extra,
+        startedAt: null,
+        isRunning: false,
+      }
+
+      return {
+        ...p,
+        tasks: p.tasks.map(t => t.id === taskId ? targetTask : t),
+      }
+    })
+
+    if (targetTask) {
+      get()._log(projectId, `Done: ${targetTask.title}`, 'success')
+      api.updateTask(taskId, {
+        status: 'done',
+        totalTime: targetTask.totalTime,
+        startedAt: null,
+        isRunning: false,
+      }).catch(() => {})
+    }
+  },
+
+  markTaskBlocked(projectId, taskId) {
+    const now = Date.now()
+    let targetTask = null
+
+    get()._patch(projectId, p => {
+      const task = p.tasks.find(t => t.id === taskId)
+      if (!task) return p
+
+      let extra = 0
+      if (task.isRunning && task.startedAt) {
+        extra = Math.floor((now - task.startedAt) / 1000)
+      }
+
+      targetTask = {
+        ...task,
+        status: 'blocked',
+        totalTime: (task.totalTime || 0) + extra,
+        startedAt: null,
+        isRunning: false,
+      }
+
+      return {
+        ...p,
+        tasks: p.tasks.map(t => t.id === taskId ? targetTask : t),
+      }
+    })
+
+    if (targetTask) {
+      get()._log(projectId, `Blocked: ${targetTask.title}`, 'warning')
+      api.updateTask(taskId, {
+        status: 'blocked',
+        totalTime: targetTask.totalTime,
+        startedAt: null,
+        isRunning: false,
+      }).catch(() => {})
+    }
+  },
+
+  editTask(projectId, taskId, title) {
+    get()._patch(projectId, p => ({
+      ...p,
+      tasks: p.tasks.map(t => t.id === taskId ? { ...t, title } : t),
+    }))
+    get()._log(projectId, `Task renamed: ${title}`, 'info')
+    api.updateTask(taskId, { title }).catch(() => {})
+  },
+
+  deleteTask(projectId, taskId) {
+    const task = get().projects.find(p => p.id === projectId)?.tasks.find(t => t.id === taskId)
+    get()._patch(projectId, p => ({
+      ...p,
+      tasks: p.tasks.filter(t => t.id !== taskId),
+    }))
+    if (task) get()._log(projectId, `Task deleted: ${task.title}`, 'warning')
+
+    api.deleteTask(taskId).catch(() => {})
+  },
+
+  // ── timer actions (operates directly on active doing task) ──────────────────────────
+
+  startTimer(projectId) {
+    const project = get().projects.find(p => p.id === projectId)
+    if (!project) return
+    const activeTask = project.tasks.find(t => t.status === 'doing' || t.isRunning)
+    if (!activeTask || activeTask.isRunning) return
+
+    const now = Date.now()
+    const updated = { ...activeTask, startedAt: now, isRunning: true }
+
+    get()._patch(projectId, p => ({
+      ...p,
+      tasks: p.tasks.map(t => t.id === activeTask.id ? updated : t)
+    }))
+    get()._log(projectId, `Timer started: ${activeTask.title}`, 'success')
+
+    api.updateTask(activeTask.id, {
+      startedAt: now,
+      isRunning: true,
+    }).catch(() => {})
+  },
+
+  stopTimer(projectId) {
+    const project = get().projects.find(p => p.id === projectId)
+    if (!project) return
+    const runningTask = project.tasks.find(t => t.isRunning)
+    if (!runningTask) return
+
+    const now = Date.now()
+    let extra = 0
+    if (runningTask.startedAt) {
+      extra = Math.floor((now - runningTask.startedAt) / 1000)
+    }
+
+    const updated = {
+      ...runningTask,
+      totalTime: (runningTask.totalTime || 0) + extra,
+      startedAt: null,
+      isRunning: false,
+    }
+
+    get()._patch(projectId, p => ({
+      ...p,
+      tasks: p.tasks.map(t => t.id === runningTask.id ? updated : t)
+    }))
+    get()._log(projectId, `Timer stopped: ${runningTask.title}`, 'info')
+
+    api.updateTask(runningTask.id, {
+      totalTime: updated.totalTime,
+      startedAt: null,
+      isRunning: false,
+    }).catch(() => {})
+  },
+
+  // ── note actions ────────────────────────────────────────────────────
+
+  async addNote(projectId) {
+    const id = String(Date.now())
+    const project = get().projects.find(p => p.id === projectId)
+    const note = { id, title: `Note ${(project?.notes.length ?? 0) + 1}`, content: '' }
+
+    get()._patch(projectId, p => ({ ...p, notes: [...p.notes, note] }))
+    get()._log(projectId, `Note created: ${note.title}`, 'info')
+
+    try {
+      await api.addNote(projectId, note)
+    } catch (err) {
+      console.error('Failed to add note via API:', err)
+    }
+    return id
+  },
+
+  updateNote(projectId, noteId, content) {
+    get()._patch(projectId, p => ({
+      ...p,
+      notes: p.notes.map(n => n.id === noteId ? { ...n, content } : n),
+    }))
+    api.updateNote(noteId, { content }).catch(() => {})
+  },
+
+  renameNote(projectId, noteId, title) {
+    get()._patch(projectId, p => ({
+      ...p,
+      notes: p.notes.map(n => n.id === noteId ? { ...n, title } : n),
+    }))
+    api.updateNote(noteId, { title }).catch(() => {})
+  },
+
+  deleteNote(projectId, noteId) {
+    get()._patch(projectId, p => ({
+      ...p,
+      notes: p.notes.filter(n => n.id !== noteId),
+    }))
+    api.deleteNote(noteId).catch(() => {})
+  },
+
+  // ── command actions ─────────────────────────────────────────────────
+
+  async addCommand(projectId, label, command) {
+    const cmd = { id: String(Date.now()), label, command }
+    get()._patch(projectId, p => ({ ...p, commands: [...p.commands, cmd] }))
+    get()._log(projectId, `Command added: ${label}`, 'info')
+
+    try {
+      await api.addCommand(projectId, cmd)
+    } catch (err) {
+      console.error('Failed to add command via API:', err)
+    }
+  },
+
+  deleteCommand(projectId, cmdId) {
+    const cmd = get().projects.find(p => p.id === projectId)?.commands.find(c => c.id === cmdId)
+    get()._patch(projectId, p => ({ ...p, commands: p.commands.filter(c => c.id !== cmdId) }))
+    if (cmd) get()._log(projectId, `Command removed: ${cmd.label}`, 'warning')
+
+    api.deleteCommand(cmdId).catch(() => {})
+  },
+
+  // ── resource actions ────────────────────────────────────────────────
+
+  async addResource(projectId, title, url, type) {
+    const res = { id: String(Date.now()), title, url: url || '#', type }
+    get()._patch(projectId, p => ({ ...p, resources: [...p.resources, res] }))
+    get()._log(projectId, `Resource added: ${title}`, 'info')
+
+    try {
+      await api.addResource(projectId, res)
+    } catch (err) {
+      console.error('Failed to add resource via API:', err)
+    }
+  },
+
+  deleteResource(projectId, resId) {
+    const res = get().projects.find(p => p.id === projectId)?.resources.find(r => r.id === resId)
+    get()._patch(projectId, p => ({ ...p, resources: p.resources.filter(r => r.id !== resId) }))
+    if (res) get()._log(projectId, `Resource removed: ${res.title}`, 'warning')
+
+    api.deleteResource(resId).catch(() => {})
+  },
+
+  // ── manual log ──────────────────────────────────────────────────────
+
+  addLog(projectId, message, type = 'info') {
+    get()._log(projectId, message, type)
+  },
+
+  clearLogs(projectId) {
+    get()._patch(projectId, p => ({ ...p, logs: [] }))
+    api.clearLogs(projectId).catch(() => {})
+  },
+}))
 
 // ─── convenience selector ─────────────────────────────────────────────────────
 

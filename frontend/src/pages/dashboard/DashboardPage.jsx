@@ -95,7 +95,7 @@ function OnboardingScreen({ onCreateProject }) {
         </div>
 
         <p className="text-xs text-outline/60 text-center">
-          Your data is stored locally in your browser.
+          DevFlow Local Service Workspace.
           {FS_SUPPORTED && ' Link a folder to also save files to disk.'}
         </p>
       </div>
@@ -103,12 +103,13 @@ function OnboardingScreen({ onCreateProject }) {
   )
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Main Dashboard Page Orchestrator ───────────────────────────────────────
 
 export default function DashboardPage() {
   const {
     projects,
     activeProjectId,
+    fetchProjects,
     createProject,
     switchProject,
     renameProject,
@@ -127,72 +128,92 @@ export default function DashboardPage() {
     updateNote,
     renameNote,
     deleteNote,
-    syncObsidianFolder,
-    importMarkdownFileList,
     addCommand,
     deleteCommand,
     addResource,
     deleteResource,
     addLog,
     clearLogs,
+    clearDoneUI,
   } = useWorkspaceStore()
 
   const project = useActiveProject()
+
+  // ── Fetch projects from REST API on startup ────────────────────────────────
+  useEffect(() => {
+    fetchProjects()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Restore folder handles from IndexedDB on startup ─────────────────────
   useEffect(() => {
     const projectIds = useWorkspaceStore.getState().projects.map(p => p.id)
     if (projectIds.length > 0) restoreHandles(projectIds).catch(() => {})
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [projects.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Timer display ─────────────────────────────────────────────────────────
-  const timer = project?.timer
-  const isRunning = !!timer?.startedAt
+  // ── Timer display (Derives active timer strictly from current active task) ─────
+  const tasks = project?.tasks ?? []
+  const activeTask = tasks.find(t => t.status === 'doing' || t.isRunning) ?? null
+  const isRunning = !!(activeTask?.isRunning && activeTask?.startedAt)
   const [displayElapsed, setDisplayElapsed] = useState(0)
   const intervalRef = useRef(null)
 
   useEffect(() => {
     clearInterval(intervalRef.current)
-    if (!timer) { setDisplayElapsed(0); return }
+    if (!activeTask) {
+      setDisplayElapsed(0)
+      return
+    }
 
     function updateElapsed() {
-      if (timer.startedAt) {
-        const extra = Math.floor((Date.now() - timer.startedAt) / 1000)
-        setDisplayElapsed(timer.accumulated + extra)
+      if (activeTask.isRunning && activeTask.startedAt) {
+        const extra = Math.floor((Date.now() - activeTask.startedAt) / 1000)
+        setDisplayElapsed((activeTask.totalTime || 0) + extra)
       } else {
-        setDisplayElapsed(timer.accumulated)
+        setDisplayElapsed(activeTask.totalTime || 0)
       }
     }
 
     updateElapsed()
 
-    if (isRunning && timer.startedAt) {
+    if (isRunning) {
       intervalRef.current = setInterval(updateElapsed, 1000)
     }
     return () => clearInterval(intervalRef.current)
-  }, [activeProjectId, isRunning, timer?.startedAt, timer?.accumulated]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeProjectId, activeTask?.id, isRunning, activeTask?.startedAt, activeTask?.totalTime])
 
-  // ── Derived values (Calculated across ALL workspaces) ────────────────────────
-  const tasks = project?.tasks ?? []
-  const activeTask = tasks.find(t => t.status === 'doing') ?? null
+  // ── Derived statistics hierarchy (Task → Workspace → Global) ──────────────────
   const tasksCompleted = tasks.filter(t => t.status === 'done').length
 
-  // Global totals across all projects
-  const totalTasksCompleted = projects.reduce((sum, p) => {
+  function formatTimeStr(secs) {
+    const hh = Math.floor(secs / 3600)
+    const mm = Math.floor((secs % 3600) / 60)
+    return `${hh}h ${String(mm).padStart(2, '0')}m`
+  }
+
+  // Active Task Total Time
+  const taskTotalSeconds = (activeTask?.totalTime || 0) + (isRunning ? Math.floor((Date.now() - (activeTask?.startedAt || Date.now())) / 1000) : 0)
+  const taskTotalFormatted = formatTimeStr(taskTotalSeconds)
+
+  // Current Workspace Total Time (Sum of all tasks in workspace)
+  const totalWorkspaceSeconds = tasks.reduce((sum, t) => {
+    const extra = (t.isRunning && t.startedAt) ? Math.floor((Date.now() - t.startedAt) / 1000) : 0
+    return sum + (t.totalTime || 0) + extra
+  }, 0)
+  const timeToday = formatTimeStr(totalWorkspaceSeconds)
+
+  // Global Cross-Workspace Total Time (Sum of all tasks across all workspaces)
+  const globalTotalSeconds = projects.reduce((sum, p) => {
+    const pSecs = (p.tasks ?? []).reduce((s, t) => {
+      const extra = (t.isRunning && t.startedAt) ? Math.floor((Date.now() - t.startedAt) / 1000) : 0
+      return s + (t.totalTime || 0) + extra
+    }, 0)
+    return sum + pSecs
+  }, 0)
+  const globalTimeToday = formatTimeStr(globalTotalSeconds)
+
+  const globalTasksCompleted = projects.reduce((sum, p) => {
     return sum + (p.tasks ?? []).filter(t => t.status === 'done').length
   }, 0)
-
-  const globalTotalSeconds = projects.reduce((sum, p) => {
-    let projectSecs = p.timer?.accumulated ?? 0
-    if (p.timer?.startedAt) {
-      projectSecs += Math.floor((Date.now() - p.timer.startedAt) / 1000)
-    }
-    return sum + projectSecs
-  }, 0)
-
-  const hh = Math.floor(globalTotalSeconds / 3600)
-  const mm = Math.floor((globalTotalSeconds % 3600) / 60)
-  const timeToday = `${hh}h ${String(mm).padStart(2, '0')}m`
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   function handleStart() {
@@ -235,8 +256,10 @@ export default function DashboardPage() {
       onTaskBlock={id => markTaskBlocked(activeProjectId, id)}
       onTaskEdit={(id, title) => editTask(activeProjectId, id, title)}
       onTaskDelete={id => deleteTask(activeProjectId, id)}
+      onClearDoneUI={() => clearDoneUI(activeProjectId)}
       tasksCompleted={tasksCompleted}
       timeToday={timeToday}
+      taskTotalFormatted={taskTotalFormatted}
       logs={project.logs ?? []}
       onLog={handleLog}
       onLogClear={() => clearLogs(activeProjectId)}
@@ -245,16 +268,14 @@ export default function DashboardPage() {
       onNoteChange={(noteId, content) => updateNote(activeProjectId, noteId, content)}
       onNoteRename={(noteId, title) => renameNote(activeProjectId, noteId, title)}
       onNoteDelete={noteId => deleteNote(activeProjectId, noteId)}
-      onNoteSyncObsidian={handle => syncObsidianFolder(activeProjectId, handle)}
-      onNoteImportFileList={fileList => importMarkdownFileList(activeProjectId, fileList)}
       commands={project.commands ?? []}
       onCommandAdd={(label, command) => addCommand(activeProjectId, label, command)}
       onCommandDelete={id => deleteCommand(activeProjectId, id)}
       resources={project.resources ?? []}
       onResourceAdd={(title, url, type) => addResource(activeProjectId, title, url, type)}
       onResourceDelete={id => deleteResource(activeProjectId, id)}
-      globalTasksCompleted={totalTasksCompleted}
-      globalTimeToday={timeToday}
+      globalTasksCompleted={globalTasksCompleted}
+      globalTimeToday={globalTimeToday}
     />
   )
 }
