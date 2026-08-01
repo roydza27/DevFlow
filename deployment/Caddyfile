@@ -1,0 +1,13 @@
+devflow.local {
+    # Serve static frontend production build
+    root * /home/cy3pher/Documents/WorkSpace-Tools/DevFlow/frontend/dist
+    file_server
+
+    # Reverse proxy backend API requests
+    handle_path /api/* {
+        reverse_proxy localhost:3001
+    }
+
+    # SPA Fallback for client routing
+    try_files {path} /index.html
+}
