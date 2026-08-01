@@ -1,15 +1,45 @@
 import 'dotenv/config';
-import { connectDB } from './config/db.js';
 import app from './app.js';
+import { PORT } from './config/env.js';
+import { getDB, closeDB } from './config/sqlite.js';
+import { stopAllWatchers } from './services/watcherService.js';
 
-const PORT = process.env.PORT || 3000;
+let server = null;
 
 try {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  // Initialize SQLite database
+  getDB();
+
+  server = app.listen(PORT, () => {
+    console.log(`🚀 DevFlow API Service running on http://localhost:${PORT}`);
   });
 } catch (err) {
-  console.error('Failed to start server:', err.message);
+  console.error('Failed to start DevFlow API Service:', err.message);
   process.exit(1);
 }
+
+// ── Graceful Shutdown ─────────────────────────────────────────────────────────
+function gracefulShutdown(signal) {
+  console.log(`\nReceived ${signal}. Shutting down DevFlow API Service gracefully...`);
+
+  // Stop file watchers
+  stopAllWatchers();
+
+  // Close HTTP server
+  if (server) {
+    server.close(() => {
+      console.log('HTTP server closed.');
+
+      // Close database connection
+      closeDB();
+
+      process.exit(0);
+    });
+  } else {
+    closeDB();
+    process.exit(0);
+  }
+}
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

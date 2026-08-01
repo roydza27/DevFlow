@@ -1,0 +1,14 @@
+[Unit]
+Description=DevFlow API Backend Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documents/WorkSpace-Tools/DevFlow/backend
+ExecStart=/usr/bin/node src/server.js
+Restart=on-failure
+RestartSec=3
+Environment=NODE_ENV=production PORT=3001
+
+[Install]
+WantedBy=default.target

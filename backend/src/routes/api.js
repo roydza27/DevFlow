@@ -1,12 +1,9 @@
 import { Router } from 'express';
-import taskRoutes from './tasks.js';
-import noteRoutes from './notes.js';
-import timeEntryRoutes from './timeEntries.js';
+import sqliteRoutes from './sqliteApi.js';
 
 const router = Router();
 
-router.use('/tasks', taskRoutes);
-router.use('/notes', noteRoutes);
-router.use('/time-entries', timeEntryRoutes);
+// DevFlow Service API routes
+router.use('/', sqliteRoutes);
 
 export default router;
