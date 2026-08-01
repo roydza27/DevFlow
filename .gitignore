@@ -39,3 +39,8 @@ lerna-debug.log*
 
 # UI & Artifact dumps
 UI/
+# Local planning / scratch files
+POLISH-SERVICE.md
+SERVICE-IMPLIMENTAION.md
+ls.md
+agent.log
