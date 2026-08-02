@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as sqlite from '../controllers/sqliteController.js';
-import { initWorkspaceFolder, watchWorkspaceFolder } from '../services/watcherService.js';
+import { initWorkspaceFolder, watchWorkspaceFolder, validateFolderPath } from '../services/watcherService.js';
 
 const router = Router();
 
@@ -28,9 +28,10 @@ router.get('/projects', (req, res, next) => {
 router.post('/projects', (req, res, next) => {
   try {
     const id = sqlite.createProjectData(req.body);
-    if (req.body.folderPath) {
-      initWorkspaceFolder(req.body.folderPath, { id, name: req.body.name });
-      watchWorkspaceFolder(id, req.body.folderPath);
+    const validPath = validateFolderPath(req.body.folderPath);
+    if (validPath) {
+      initWorkspaceFolder(validPath, { id, name: req.body.name });
+      watchWorkspaceFolder(id, validPath);
     }
     res.status(201).json({ id, message: 'Project created' });
   } catch (err) {
@@ -61,12 +62,14 @@ router.delete('/projects/:id', (req, res, next) => {
 // LINK folder
 router.post('/projects/:id/link-folder', (req, res, next) => {
   try {
-    const { folderPath } = req.body;
-    if (folderPath) {
-      sqlite.updateProjectData(req.params.id, { linkedFolderName: folderPath });
-      initWorkspaceFolder(folderPath, { id: req.params.id, name: req.body.name || 'Workspace' });
-      watchWorkspaceFolder(req.params.id, folderPath);
+    const validPath = validateFolderPath(req.body.folderPath);
+    if (!validPath) {
+      res.status(400).json({ error: 'Invalid or inaccessible directory path' });
+      return;
     }
+    sqlite.updateProjectData(req.params.id, { linkedFolderName: validPath });
+    initWorkspaceFolder(validPath, { id: req.params.id, name: req.body.name || 'Workspace' });
+    watchWorkspaceFolder(req.params.id, validPath);
     res.json({ message: 'Folder linked' });
   } catch (err) {
     next(err);
@@ -138,6 +141,44 @@ router.delete('/notes/:noteId', (req, res, next) => {
   }
 });
 
+// COMMANDS
+router.post('/projects/:id/commands', (req, res, next) => {
+  try {
+    sqlite.addCommandData(req.params.id, req.body);
+    res.status(201).json({ message: 'Command added' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/commands/:commandId', (req, res, next) => {
+  try {
+    sqlite.deleteCommandData(req.params.commandId);
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// RESOURCES
+router.post('/projects/:id/resources', (req, res, next) => {
+  try {
+    sqlite.addResourceData(req.params.id, req.body);
+    res.status(201).json({ message: 'Resource added' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete('/resources/:resourceId', (req, res, next) => {
+  try {
+    sqlite.deleteResourceData(req.params.resourceId);
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // LOGS & TIMERS
 router.post('/projects/:id/logs', (req, res, next) => {
   try {
@@ -167,3 +208,4 @@ router.put('/projects/:id/timer', (req, res, next) => {
 });
 
 export default router;
+

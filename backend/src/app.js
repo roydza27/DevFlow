@@ -9,15 +9,16 @@ const app = express();
 app.use(cors());           // CORS first — must precede body parsing
 app.use(express.json());   // Parse JSON request bodies
 
-// ── Routes ────────────────────────────────────────────────────────────────────
+// ── REST API Routes ───────────────────────────────────────────────────────────
+// Express backend acts purely as a JSON REST API service (handled via Caddy)
 app.use('/api', router);
 
-// ── 404 fallback ──────────────────────────────────────────────────────────────
+// ── 404 Fallback for Non-API Routes ───────────────────────────────────────────
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: 'API route not found' });
 });
 
-// ── Central error handler (must be last) ─────────────────────────────────────
+// ── Central Error Handler (must be last) ──────────────────────────────────────
 app.use(errorHandler);
 
 export default app;

@@ -1,16 +1,23 @@
 export function errorHandler(err, req, res, next) {
-  console.error(err.stack);
+  console.error('[DevFlow Service Error]:', err.message || err);
 
-  // Invalid MongoDB ObjectId format
-  if (err.name === 'CastError') {
-    return res.status(400).json({ message: 'Invalid ID format' });
+  // SQLite constraint or syntax errors
+  if (err.code && err.code.startsWith('SQLITE_')) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        message: err.message || 'Database operation failed',
+        code: err.code,
+      },
+    });
   }
 
-  // Mongoose schema validation failure
-  if (err.name === 'ValidationError') {
-    const errors = Object.values(err.errors).map((e) => e.message);
-    return res.status(422).json({ message: 'Validation failed', errors });
-  }
-
-  res.status(500).json({ message: 'Internal Server Error' });
+  res.status(500).json({
+    success: false,
+    error: {
+      message: err.message || 'Internal Server Error',
+      code: 'INTERNAL_ERROR',
+    },
+  });
 }
+

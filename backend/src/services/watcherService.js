@@ -2,15 +2,34 @@ import fs from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
 import { getDB } from '../config/sqlite.js';
+import { WATCHER_CONFIG } from '../config/env.js';
 
 const activeWatchers = new Map();
+
+/**
+ * Validates and resolves a filesystem folder path.
+ * Returns absolute resolved path if valid & exists & is a directory, else null.
+ */
+export function validateFolderPath(rawPath) {
+  if (!rawPath || typeof rawPath !== 'string') return null;
+  try {
+    const resolvedPath = path.resolve(rawPath.trim());
+    if (!fs.existsSync(resolvedPath)) return null;
+    const stat = fs.statSync(resolvedPath);
+    if (!stat.isDirectory()) return null;
+    return resolvedPath;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Ensures `.devflow/` directory exists within a workspace folder
  * and initializes default workspace config file.
  */
-export function initWorkspaceFolder(folderPath, projectData) {
-  if (!folderPath || !fs.existsSync(folderPath)) return null;
+export function initWorkspaceFolder(rawPath, projectData) {
+  const folderPath = validateFolderPath(rawPath);
+  if (!folderPath) return null;
 
   const devflowDir = path.join(folderPath, '.devflow');
   if (!fs.existsSync(devflowDir)) {
@@ -39,8 +58,9 @@ export function initWorkspaceFolder(folderPath, projectData) {
 /**
  * Setup filesystem watcher on project's linked folder
  */
-export function watchWorkspaceFolder(projectId, folderPath) {
-  if (!folderPath || !fs.existsSync(folderPath)) return;
+export function watchWorkspaceFolder(projectId, rawPath) {
+  const folderPath = validateFolderPath(rawPath);
+  if (!folderPath) return;
 
   if (activeWatchers.has(projectId)) {
     activeWatchers.get(projectId).close();
@@ -48,15 +68,7 @@ export function watchWorkspaceFolder(projectId, folderPath) {
 
   const db = getDB();
 
-  const watcher = chokidar.watch(folderPath, {
-    ignored: /(^|[\/\\])\../, // ignore dotfiles/dotfolders EXCEPT explicitly handled
-    persistent: true,
-    ignoreInitial: true,
-    awaitWriteFinish: {
-      stabilityThreshold: 300,
-      pollInterval: 100
-    }
-  });
+  const watcher = chokidar.watch(folderPath, WATCHER_CONFIG);
 
   watcher.on('add', (filePath) => handleFileChange(projectId, filePath, db));
   watcher.on('change', (filePath) => handleFileChange(projectId, filePath, db));
