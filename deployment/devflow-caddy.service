@@ -1,0 +1,15 @@
+[Unit]
+Description=DevFlow Caddy Reverse Proxy & Static Web Server
+After=network.target devflow-api.service
+Wants=devflow-api.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/cy3pher/Documents/WorkSpace-Tools/DevFlow
+ExecStart=/home/cy3pher/.local/bin/caddy run --config deployment/Caddyfile --adapter caddyfile
+ExecReload=/home/cy3pher/.local/bin/caddy reload --config deployment/Caddyfile --adapter caddyfile
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

@@ -1,13 +1,19 @@
-devflow.local {
-    # Serve static frontend production build
+http://devflow.localhost {
+    # ── 1. Static Web Server ──────────────────────────────────────────────────
     root * /home/cy3pher/Documents/WorkSpace-Tools/DevFlow/frontend/dist
-    file_server
 
-    # Reverse proxy backend API requests
-    handle_path /api/* {
+    # ── 2. Automatic Compression ──────────────────────────────────────────────
+    encode gzip zstd
+
+    # ── 3. Reverse Proxy API Handler ─────────────────────────────────────────
+    # Forward all /api/* requests directly to Express backend on port 3001
+    handle /api/* {
         reverse_proxy localhost:3001
     }
 
-    # SPA Fallback for client routing
-    try_files {path} /index.html
+    # ── 4. Static File Server & SPA Client Routing Fallback ───────────────────
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
 }
