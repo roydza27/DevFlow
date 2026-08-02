@@ -27,10 +27,10 @@ function mkTimer() {
 }
 
 function normalizeProject(p) {
-  const projId = isNaN(Number(p.id)) ? p.id : Number(p.id);
+  const projId = String(p.id);
   const tasks = (p.tasks ?? []).map(t => ({
     ...t,
-    id: isNaN(Number(t.id)) ? t.id : Number(t.id),
+    id: String(t.id),
     totalTime: t.totalTime ?? t.accumulatedSeconds ?? 0,
     startedAt: t.startedAt ?? null,
     isRunning: Boolean(t.isRunning),
@@ -40,10 +40,10 @@ function normalizeProject(p) {
     ...p,
     id: projId,
     linkedFolderName: p.linkedFolderName ?? null,
-    notes: p.notes ?? [],
-    commands: p.commands ?? [],
-    resources: p.resources ?? [],
-    logs: p.logs ?? [],
+    notes: (p.notes ?? []).map(n => ({ ...n, id: String(n.id) })),
+    commands: (p.commands ?? []).map(c => ({ ...c, id: String(c.id) })),
+    resources: (p.resources ?? []).map(r => ({ ...r, id: String(r.id) })),
+    logs: (p.logs ?? []).map(l => ({ ...l, id: String(l.id) })),
     tasks,
   }
 }
@@ -171,20 +171,40 @@ export const useWorkspaceStore = create((set, get) => ({
     const project = projects.find(p => p.id === id)
     if (!project) return
 
-    // Flush active running timer in old project if running
-    const currentActive = projects.find(p => p.id === activeProjectId)
-    if (currentActive?.timer?.startedAt) {
-      const extra = Math.floor((Date.now() - currentActive.timer.startedAt) / 1000)
-      const updatedTimer = {
-        ...currentActive.timer,
-        startedAt: Date.now(),
-        accumulated: currentActive.timer.accumulated + extra,
+    const now = Date.now()
+
+    // Pause running tasks in current project before switching
+    if (activeProjectId) {
+      const currentActive = projects.find(p => p.id === activeProjectId)
+      if (currentActive) {
+        const updatedTasks = []
+        get()._patch(activeProjectId, p => ({
+          ...p,
+          tasks: p.tasks.map(t => {
+            if (t.isRunning) {
+              const extra = t.startedAt ? Math.floor((now - t.startedAt) / 1000) : 0
+              const updated = {
+                ...t,
+                totalTime: (t.totalTime || 0) + extra,
+                startedAt: null,
+                isRunning: false,
+              }
+              updatedTasks.push(updated)
+              return updated
+            }
+            return t
+          })
+        }))
+        updatedTasks.forEach(t => {
+          api.updateTask(t.id, {
+            totalTime: t.totalTime,
+            startedAt: null,
+            isRunning: false,
+          }).catch(() => {})
+        })
       }
-      get()._patch(activeProjectId, p => ({ ...p, timer: updatedTimer }))
-      api.updateTimer(activeProjectId, updatedTimer).catch(() => {})
     }
 
-    const now = Date.now()
     get()._patch(id, p => ({ ...p, lastAccessed: now }))
     set({ activeProjectId: id })
     get()._log(id, `Switched to: ${project.name}`, 'info')

@@ -41,8 +41,15 @@ export const api = {
   updateNote: (noteId, data) => request(`/notes/${noteId}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteNote: (noteId) => request(`/notes/${noteId}`, { method: 'DELETE' }),
 
+  // Commands & Resources
+  addCommand: (projectId, cmd) => request(`/projects/${projectId}/commands`, { method: 'POST', body: JSON.stringify(cmd) }),
+  deleteCommand: (commandId) => request(`/commands/${commandId}`, { method: 'DELETE' }),
+  addResource: (projectId, resource) => request(`/projects/${projectId}/resources`, { method: 'POST', body: JSON.stringify(resource) }),
+  deleteResource: (resourceId) => request(`/resources/${resourceId}`, { method: 'DELETE' }),
+
   // Logs & Timers
   addLog: (projectId, log) => request(`/projects/${projectId}/logs`, { method: 'POST', body: JSON.stringify(log) }),
   clearLogs: (projectId) => request(`/projects/${projectId}/logs`, { method: 'DELETE' }),
   updateTimer: (projectId, timer) => request(`/projects/${projectId}/timer`, { method: 'PUT', body: JSON.stringify(timer) }),
 };
+
