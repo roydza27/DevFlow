@@ -3,8 +3,11 @@ import { api } from '../../services/apiClient'
 
 export default function Footer({
   tasksCompleted = 0,
+  activeTaskCount = 0,
+  archivedTaskCount = 0,
   timeToday = '0h 00m',
-  globalTasksCompleted = 0,
+  globalTotalWorkspaces = 0,
+  globalArchivedTasks = 0,
   globalTimeToday = '0h 00m'
 }) {
   const [dbStats, setDbStats] = useState(null)
@@ -36,17 +39,20 @@ export default function Footer({
         {/* Workspace specific stats */}
         <div className="flex gap-4">
           <span>Workspace Time: <span className="text-on-surface-variant font-medium">{timeToday}</span></span>
-          <span>Workspace Tasks: <span className="text-on-surface-variant font-medium">{tasksCompleted}</span></span>
+          <span>Active Tasks: <span className="text-on-surface-variant font-medium">{activeTaskCount}</span></span>
+          <span>Archived: <span className="text-on-surface-variant font-medium">{archivedTaskCount}</span></span>
         </div>
 
         <div className="h-3 w-px bg-outline-variant/60" />
 
         {/* Global cross-workspace stats */}
         <div className="flex gap-4 text-outline/80">
-          <span>Global Total: <span className="text-primary font-medium">{globalTimeToday}</span></span>
-          <span>Global Tasks: <span className="text-primary font-medium">{globalTasksCompleted}</span></span>
+          <span>Global Time: <span className="text-primary font-medium">{globalTimeToday}</span></span>
+          <span>Workspaces: <span className="text-primary font-medium">{globalTotalWorkspaces}</span></span>
+          <span>Global Archived: <span className="text-primary font-medium">{globalArchivedTasks}</span></span>
         </div>
       </div>
     </footer>
   )
 }
+

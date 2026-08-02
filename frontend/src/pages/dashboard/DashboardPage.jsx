@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Layers, FolderOpen, Plus, Check } from 'lucide-react'
 import Workspace from '../../features/workspace/Workspace'
+import InsightsPage from '../insights/InsightsPage'
+import DashboardLayout from '../../app/layout/DashboardLayout'
 import { useWorkspaceStore, useActiveProject } from '../../store/useWorkspaceStore'
 import { restoreHandles, isFileSystemSupported, pickDirectory } from '../../services/fileSystemService'
 
@@ -138,6 +140,7 @@ export default function DashboardPage() {
   } = useWorkspaceStore()
 
   const project = useActiveProject()
+  const [activeView, setActiveView] = useState('workspace') // 'workspace' | 'insights'
 
   // ── Fetch projects from REST API on startup ────────────────────────────────
   useEffect(() => {
@@ -182,7 +185,9 @@ export default function DashboardPage() {
   }, [activeProjectId, activeTask?.id, isRunning, activeTask?.startedAt, activeTask?.totalTime])
 
   // ── Derived statistics hierarchy (Task → Workspace → Global) ──────────────────
+  const activeTaskCount = tasks.filter(t => t.status !== 'archived' && t.status !== 'done').length
   const tasksCompleted = tasks.filter(t => t.status === 'done').length
+  const archivedTaskCount = tasks.filter(t => t.status === 'archived').length
 
   function formatTimeStr(secs) {
     const hh = Math.floor(secs / 3600)
@@ -211,8 +216,9 @@ export default function DashboardPage() {
   }, 0)
   const globalTimeToday = formatTimeStr(globalTotalSeconds)
 
-  const globalTasksCompleted = projects.reduce((sum, p) => {
-    return sum + (p.tasks ?? []).filter(t => t.status === 'done').length
+  const globalTotalWorkspaces = projects.length
+  const globalArchivedTasks = projects.reduce((sum, p) => {
+    return sum + (p.tasks ?? []).filter(t => t.status === 'archived').length
   }, 0)
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -232,6 +238,40 @@ export default function DashboardPage() {
   // ── No workspaces — show onboarding ───────────────────────────────────────
   if (!project) {
     return <OnboardingScreen onCreateProject={createProject} />
+  }
+
+  if (activeView === 'insights') {
+    return (
+      <DashboardLayout
+        projects={projects}
+        currentProject={project}
+        onProjectSwitch={switchProject}
+        onCreateProject={createProject}
+        onRenameProject={renameProject}
+        onDeleteProject={deleteProject}
+        onLinkFolder={linkFolder}
+        onUnlinkFolder={unlinkFolder}
+        activeTask={activeTask}
+        activeView={activeView}
+        onViewChange={setActiveView}
+        centerPanel={
+          <InsightsPage
+            projects={projects}
+            currentProject={project}
+            onProjectSwitch={switchProject}
+          />
+        }
+        footerProps={{
+          tasksCompleted,
+          activeTaskCount,
+          archivedTaskCount,
+          timeToday,
+          globalTotalWorkspaces,
+          globalArchivedTasks,
+          globalTimeToday
+        }}
+      />
+    )
   }
 
   return (
@@ -258,6 +298,8 @@ export default function DashboardPage() {
       onTaskDelete={id => deleteTask(activeProjectId, id)}
       onClearDoneUI={() => clearDoneUI(activeProjectId)}
       tasksCompleted={tasksCompleted}
+      activeTaskCount={activeTaskCount}
+      archivedTaskCount={archivedTaskCount}
       timeToday={timeToday}
       taskTotalFormatted={taskTotalFormatted}
       logs={project.logs ?? []}
@@ -274,8 +316,11 @@ export default function DashboardPage() {
       resources={project.resources ?? []}
       onResourceAdd={(title, url, type) => addResource(activeProjectId, title, url, type)}
       onResourceDelete={id => deleteResource(activeProjectId, id)}
-      globalTasksCompleted={globalTasksCompleted}
+      globalTotalWorkspaces={globalTotalWorkspaces}
+      globalArchivedTasks={globalArchivedTasks}
       globalTimeToday={globalTimeToday}
+      activeView={activeView}
+      onViewChange={setActiveView}
     />
   )
 }

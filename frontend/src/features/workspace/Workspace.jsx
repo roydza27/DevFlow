@@ -27,6 +27,8 @@ export default function Workspace({
   onTaskDelete,
   onClearDoneUI,
   tasksCompleted,
+  activeTaskCount,
+  archivedTaskCount,
   timeToday,
   taskTotalFormatted,
   logs,
@@ -45,8 +47,11 @@ export default function Workspace({
   resources,
   onResourceAdd,
   onResourceDelete,
-  globalTasksCompleted,
+  globalTotalWorkspaces,
+  globalArchivedTasks,
   globalTimeToday,
+  activeView,
+  onViewChange,
 }) {
   return (
     <DashboardLayout
@@ -59,6 +64,8 @@ export default function Workspace({
       onLinkFolder={onLinkFolder}
       onUnlinkFolder={onUnlinkFolder}
       activeTask={activeTask}
+      activeView={activeView}
+      onViewChange={onViewChange}
       leftPanel={
         <TaskSection
           tasks={tasks}
@@ -111,10 +118,14 @@ export default function Workspace({
       }
       footerProps={{
         tasksCompleted,
+        activeTaskCount,
+        archivedTaskCount,
         timeToday,
-        globalTasksCompleted,
+        globalTotalWorkspaces,
+        globalArchivedTasks,
         globalTimeToday
       }}
     />
   )
 }
+

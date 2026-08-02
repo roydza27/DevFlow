@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Layers, Plus, Check, FolderOpen, Link, Unlink, Pencil, Trash2, X } from 'lucide-react'
+import { ChevronDown, Layers, Plus, Check, FolderOpen, Link, Unlink, Pencil, Trash2, X, Layout, BarChart3 } from 'lucide-react'
 import { isFileSystemSupported, pickDirectory } from '../../services/fileSystemService'
 
 const FS_SUPPORTED = isFileSystemSupported()
@@ -14,6 +14,8 @@ export default function WorkspaceHeader({
   onLinkFolder,
   onUnlinkFolder,
   activeTask = null,
+  activeView = 'workspace',
+  onViewChange,
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -370,20 +372,28 @@ export default function WorkspaceHeader({
         )}
       </div>
 
-      {/* Active task indicator */}
-      {activeTask && (
-        <div className="flex items-center gap-2 max-w-xs">
-          <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse shrink-0" />
-          <span className="text-sm font-body text-on-surface-variant truncate">
-            {activeTask.title}
-          </span>
-        </div>
-      )}
+      {/* Navigation View Switcher (Workspace vs Insights) */}
+      <div className="flex items-center gap-1 bg-surface-container-high border border-outline-variant rounded-lg p-0.5 font-label text-xs">
+        <button
+          onClick={() => onViewChange?.('workspace')}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors ${activeView === 'workspace' ? 'bg-primary text-on-primary font-semibold' : 'text-outline hover:text-on-surface'}`}
+        >
+          <Layout size={13} />
+          Workspace
+        </button>
+        <button
+          onClick={() => onViewChange?.('insights')}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors ${activeView === 'insights' ? 'bg-primary text-on-primary font-semibold' : 'text-outline hover:text-on-surface'}`}
+        >
+          <BarChart3 size={13} />
+          Insights
+        </button>
+      </div>
 
       {/* Status */}
       <div className="flex items-center gap-2" aria-label="Workspace active status">
         <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-        <span className="text-xs font-label text-outline">workspace</span>
+        <span className="text-xs font-label text-outline capitalize">{activeView}</span>
       </div>
     </header>
   )

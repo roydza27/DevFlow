@@ -27,6 +27,8 @@ export default function DashboardLayout({
   rightPanel,
   notesPanel,
   footerProps,
+  activeView = 'workspace',
+  onViewChange,
 }) {
   const [leftWidth, setLeftWidth] = useState(340)
   const [rightWidth, setRightWidth] = useState(320)
@@ -36,6 +38,15 @@ export default function DashboardLayout({
   const [notesCollapsed, setNotesCollapsed] = useState(false)
   const [notesExpanded, setNotesExpanded] = useState(false)
   const [focusCollapsed, setFocusCollapsed] = useState(false)
+
+  // Auto-collapse sidebars and notes panel when switching to Insights view
+  useEffect(() => {
+    if (activeView === 'insights') {
+      setLeftCollapsed(true)
+      setRightCollapsed(true)
+      setNotesCollapsed(true)
+    }
+  }, [activeView])
 
   const draggingLeft = useRef(false)
   const draggingRight = useRef(false)
@@ -117,6 +128,8 @@ export default function DashboardLayout({
         onLinkFolder={onLinkFolder}
         onUnlinkFolder={onUnlinkFolder}
         activeTask={activeTask}
+        activeView={activeView}
+        onViewChange={onViewChange}
       />
 
       {/* Main workspace */}
@@ -220,7 +233,7 @@ export default function DashboardLayout({
               </div>
               {/* Notes content — full height */}
               <div className="flex-1 overflow-hidden p-2">
-                {React.cloneElement(notesPanel, { expanded: true })}
+                {notesPanel ? React.cloneElement(notesPanel, { expanded: true }) : null}
               </div>
             </div>
           ) : (
@@ -266,7 +279,7 @@ export default function DashboardLayout({
               {/* Notes content */}
               {!notesCollapsed && (
                 <div className="flex-1 overflow-hidden p-2">
-                  {React.cloneElement(notesPanel, { expanded: false })}
+                  {notesPanel ? React.cloneElement(notesPanel, { expanded: false }) : null}
                 </div>
               )}
             </div>
