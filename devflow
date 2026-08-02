@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# Helper function to open browser
+open_url() {
+  local URL="$1"
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$URL"
+  elif command -v open >/dev/null 2>&1; then
+    open "$URL"
+  else
+    echo "Please open $URL in your web browser."
+  fi
+}
+
+DEVFLOW_DIR="/home/cy3pher/Documents/WorkSpace-Tools/DevFlow"
+
+case "${1:-open}" in
+  start)
+    systemctl --user start devflow-api.service devflow-caddy.service
+    echo "DevFlow API & Caddy services started."
+    ;;
+  stop)
+    systemctl --user stop devflow-api.service devflow-caddy.service
+    echo "DevFlow API & Caddy services stopped."
+    ;;
+  restart)
+    systemctl --user restart devflow-api.service devflow-caddy.service
+    echo "DevFlow API & Caddy services restarted."
+    ;;
+  status)
+    "$DEVFLOW_DIR/scripts/status.sh"
+    ;;
+  logs)
+    echo "=== Tailing DevFlow API & Caddy Logs ==="
+    journalctl --user -u devflow-api.service -u devflow-caddy.service -f -n 50
+    ;;
+  doctor)
+    "$DEVFLOW_DIR/scripts/doctor.sh"
+    ;;
+  open)
+    URL="http://devflow.localhost"
+    echo "Opening DevFlow at $URL..."
+    open_url "$URL"
+    ;;
+
+  build)
+    echo "Building production frontend bundle..."
+    cd "$DEVFLOW_DIR/frontend"
+    npm run build
+    echo "Build complete (dist/)."
+    ;;
+  update)
+    echo "Updating DevFlow installation..."
+    "$DEVFLOW_DIR/scripts/install.sh"
+    ;;
+  reset-db)
+    "$DEVFLOW_DIR/scripts/reset-db.sh"
+    ;;
+  install)
+    "$DEVFLOW_DIR/scripts/install.sh"
+    ;;
+  uninstall)
+    "$DEVFLOW_DIR/scripts/uninstall.sh"
+    ;;
+  help|-h|--help)
+    echo "DevFlow CLI Command Reference:"
+    echo "  devflow open       - Open DevFlow in default web browser"
+    echo "  devflow doctor     - Run full health and diagnostic check"
+    echo "  devflow start      - Start API & Caddy background services"
+    echo "  devflow stop       - Stop API & Caddy background services"
+    echo "  devflow restart    - Restart API & Caddy background services"
+    echo "  devflow status     - View service status and API health"
+    echo "  devflow logs       - Tail backend & Caddy service logs"
+    echo "  devflow build      - Rebuild frontend production dist bundle"
+    echo "  devflow update     - Rebuild frontend and reinstall systemd services"
+    echo "  devflow reset-db   - Reset SQLite database and re-initialize schema"
+    echo "  devflow install    - Install systemd user services and build frontend"
+    echo "  devflow uninstall  - Remove systemd user services"
+    ;;
+  *)
+    echo "Unknown command: $1"
+    echo "Run 'devflow help' for usage instructions."
+    exit 1
+    ;;
+esac
