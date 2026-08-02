@@ -81,10 +81,39 @@ export function getDB() {
     );
   `);
 
-  // Column migrations
+  // Column & Constraint Migrations
   try { db.exec('ALTER TABLE tasks ADD COLUMN totalTime INTEGER DEFAULT 0;'); } catch {}
   try { db.exec('ALTER TABLE tasks ADD COLUMN startedAt INTEGER DEFAULT NULL;'); } catch {}
   try { db.exec('ALTER TABLE tasks ADD COLUMN isRunning INTEGER DEFAULT 0;'); } catch {}
+
+  // If table was originally created with old CHECK constraint without 'archived', recreate it preserving data
+  try {
+    const tableInfo = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='tasks'").get();
+    if (tableInfo && tableInfo.sql && !tableInfo.sql.includes("'archived'")) {
+      db.exec(`
+        PRAGMA foreign_keys=OFF;
+        BEGIN TRANSACTION;
+        CREATE TABLE tasks_new (
+          id TEXT PRIMARY KEY,
+          projectId TEXT NOT NULL,
+          title TEXT NOT NULL,
+          status TEXT NOT NULL CHECK(status IN ('todo', 'doing', 'blocked', 'done', 'archived')),
+          totalTime INTEGER DEFAULT 0,
+          startedAt INTEGER DEFAULT NULL,
+          isRunning INTEGER DEFAULT 0,
+          createdAt INTEGER,
+          FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE
+        );
+        INSERT INTO tasks_new SELECT id, projectId, title, status, totalTime, startedAt, isRunning, createdAt FROM tasks;
+        DROP TABLE tasks;
+        ALTER TABLE tasks_new RENAME TO tasks;
+        COMMIT;
+        PRAGMA foreign_keys=ON;
+      `);
+    }
+  } catch (err) {
+    console.error('Failed migrating tasks schema check constraint:', err.message);
+  }
 
   console.log(`SQLite DB initialized at: ${DB_PATH}`);
   return db;
