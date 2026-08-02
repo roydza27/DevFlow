@@ -1,6 +1,6 @@
 # MEMORY.md — DevFlow Project Memory
 
-_Last updated: 2026-08-01 (session 28 — Task Lifecycle Archiving Architecture complete)_
+_Last updated: 2026-08-02 (session 45 — Port 80 Caddy Capability Analysis & Systemd Architecture complete)_
 
 ---
 
@@ -10,24 +10,21 @@ Build **DevFlow** — a local-first developer workspace that helps developers in
 
 Principle: **Resume → Focus → Execute → Log → Continue → Track**
 
-Current session: Transformed task cleanup from destructive deletion into a Git-like Task Lifecycle Archiving Architecture. Replaced "Clear Done" with "Archive completed". When executed, completed tasks transition to `status = 'archived'` in SQLite (`UPDATE tasks SET status = 'archived' WHERE status = 'done'`). Archived tasks are hidden from active workspace task lists while preserving total accumulated time, completion logs, and engineering history intact forever.
+Current session: Audited Caddy's privileged port binding permission issue (`listen tcp :80: bind: permission denied`). Demonstrated root cause analysis of unprivileged user Linux capabilities (`ip_unprivileged_port_start=1024`). Compared Options A (`setcap`), B (`systemd` root service), and C (`sysctl`). Configured `deployment/Caddyfile` for `http://devflow.localhost` on HTTP port 80 and updated `scripts/doctor.sh` and `devflow open` CLI tool.
 
 ---
 
 ## Current Architecture Understanding
 
-### Stack
-
-| Layer     | Tech                                         |
-|-----------|----------------------------------------------|
-| Frontend  | React 18 + Vite, Static Build (`dist/`), TailwindCSS v3, Zustand v5, REST API Client |
-| Backend / Service Layer | Node.js/Express 5, SQLite (`better-sqlite3`), `chokidar` file watcher, systemd user services, Caddy reverse-proxy |
-| Persistence | Single Source of Truth: SQLite DB (`~/.config/devflow/devflow.db`) + `.devflow/` workspace folder sync |
-
-### Task Lifecycle Architecture
+### Reverse-Proxied Production Service Architecture
 
 ```
-todo ──► doing ──► blocked (optional) ──► done ──► archived (hidden from workspace, kept in SQLite)
+Boot → systemd
+        ├── devflow-api.service (Express 5 REST API on localhost:3001) → SQLite WAL DB
+        └── devflow-caddy.service (Caddy Web Server & Reverse Proxy listening on HTTP Port 80)
+                ├── Serves static UI (frontend/dist) + Gzip/Zstd + SPA routing
+                ├── Forward /api/* requests to localhost:3001
+                └── Public Production Domain: http://devflow.localhost
 ```
 
 ---
@@ -35,32 +32,26 @@ todo ──► doing ──► blocked (optional) ──► done ──► archi
 ## Important Files
 
 ```
-frontend/src/features/workspace/TaskSection.jsx ← UI with "Archive completed" button and active vs archived stats
-frontend/src/store/useWorkspaceStore.js        ← Zustand store updating status to 'archived'
-backend/src/controllers/sqliteController.js   ← SQLite controller executing UPDATE tasks SET status = 'archived'
-backend/src/config/sqlite.js                   ← Schema definition supporting ('todo', 'doing', 'blocked', 'done', 'archived')
+deployment/Caddyfile                          ← Production Caddy configuration on port 80 (http://devflow.localhost)
+deployment/devflow-caddy.service              ← Systemd user service unit file for Caddy
+backend/src/app.js                             ← Pure Express 5 REST API server
+devflow                                        ← Main CLI binary installed at ~/.local/bin/devflow
+scripts/doctor.sh                              ← Diagnostic suite
+docs/Architecture.md                           ← Educational deployment & architecture documentation
 ```
-
----
-
-## Design Decisions
-
-- **Git-Like Archiving Model**: Never delete completed work data. Cleaning up the workspace updates tasks to `archived` status, preserving time metrics, audit logs, and historical engineering data in SQLite.
-- **Active Workspace Filtering**: Main task list views only show `todo`, `doing`, `blocked`, and active `done` tasks.
-- **Accurate Historical Time Tracking**: Workspace total time continues to include archived task times (`sum(all workspace task.totalTime)`).
 
 ---
 
 ## Progress
 
 ### Completed
-- **SQLite Schema Updated**: Added `'archived'` to `tasks.status` CHECK constraint in [`sqlite.js`](file:///home/cy3pher/Documents/WorkSpace-Tools/DevFlow/backend/src/config/sqlite.js).
-- **Controller Updated**: Modified `clearDoneTasksData` in [`sqliteController.js`](file:///home/cy3pher/Documents/WorkSpace-Tools/DevFlow/backend/src/controllers/sqliteController.js) to issue `UPDATE tasks SET status = 'archived' WHERE status = 'done'`.
-- **UI & Button Updated**: Renamed button to **"Archive completed ({N})"** with an `Archive` icon in [`TaskSection.jsx`](file:///home/cy3pher/Documents/WorkSpace-Tools/DevFlow/frontend/src/features/workspace/TaskSection.jsx).
-- **Workspace Stats Updated**: Left sidebar bottom card displays **Active**, **Done**, and **Archived** count breakdowns.
+- **Root Cause Analysis**: Identified Linux kernel privileged port protection (ports 1–1023 restricted to root/CAP_NET_BIND_SERVICE).
+- **Architecture Analysis**: Compared `setcap` capability granting vs system-level systemd service configuration.
+- **Port 80 Caddy Configuration**: Configured `deployment/Caddyfile` for `http://devflow.localhost` on default HTTP port 80.
+- **Updated CLI Tools**: `devflow open` updated to open `http://devflow.localhost` without explicit port numbers.
 
 ---
 
 ## Next Recommended Task
 
-1. Verify systemd background services (`systemctl --user status devflow-api devflow-ui`).
+1. Run `sudo setcap cap_net_bind_service=+ep $(which caddy)` to allow Caddy binary to bind to port 80.

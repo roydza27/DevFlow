@@ -11,9 +11,9 @@ DevFlow is designed around one core principle:
 
 Modern developers constantly waste focus switching between issue trackers, timers, terminal commands, markdown documentation, and browser tabs. DevFlow brings your entire active developer environment into a single, high-efficiency, single-screen workspace.
 
-- 🔒 **100% Local-First**: All workspace data is persisted locally in your browser (`localStorage` & `IndexedDB`).
-- 📁 **Native Folder Sync**: Link local workspace folders via the File System Access API (`.devflow/` project sync).
-- 📝 **Obsidian Vault & Markdown Import**: Import local markdown folders or Obsidian vaults preserving nested directory paths.
+- 🔒 **100% Local-First**: SQLite single source of truth database (`~/.config/devflow/devflow.db`) + real-time workspace disk sync.
+- 📁 **Native Folder Sync**: Link local workspace folders via the backend file watcher (`.devflow/` project sync).
+- 📝 **Markdown Notes Workspace**: Live preview markdown editing with automatic real-time disk sync.
 - ⏱️ **Task-Bound Focus Timer**: Track active session duration tied to a single active focus task.
 - 📊 **Global Cross-Workspace Stats**: Real-time cross-workspace tracking for total time worked today and completed tasks.
 
@@ -25,10 +25,10 @@ Modern developers constantly waste focus switching between issue trackers, timer
 |---|---|
 | **Frontend Framework** | React 18 + Vite |
 | **Styling** | TailwindCSS v3 (Custom Material 3 Dark Palette) |
-| **State Management** | Zustand v5 (`persist` middleware to `localStorage`) |
-| **Local File System** | File System Access API + IndexedDB Handle Persistence |
+| **State Management** | Zustand v5 + REST API integration |
+| **Backend Service** | Node.js + Express 5 + SQLite (`better-sqlite3` WAL mode) + `chokidar` |
+| **Local Deployment** | `systemd` user service (`devflow-api.service`) + Express static & REST server (`http://localhost:3001`) |
 | **Icons & UI** | `lucide-react` |
-| **Backend API (Optional)** | Node.js + Express 5 + Mongoose / MongoDB |
 
 ---
 
@@ -54,14 +54,14 @@ Modern developers constantly waste focus switching between issue trackers, timer
    ```
    Open your browser at `http://localhost:5173`.
 
-3. **Backend Setup (Optional REST API)**
+3. **Backend Service Setup**
    ```bash
    cd ../backend
    npm install
    cp .env.example .env
    npm run dev
    ```
-   Backend API runs at `http://localhost:3000/api`.
+   Backend service API runs at `http://localhost:3001/api`.
 
 ---
 
@@ -87,15 +87,13 @@ DevFlow operates on a single screen without complex page routing. The workspace 
 
 1. **Left Panel — Task Panel**:
    - Quick task creation (`Enter` key)
-   - Status tracking: `Active` (doing), `Pending` (todo), `Blocked` (blocked), `Done` (completed)
-   - Restore blocked tasks to Active with one click
-   - Bulk "Clear Done" cleanup action button
+   - Status tracking: `Active` (`doing`), `Pending` (`todo`), `Blocked` (`blocked`), `Done` (`done`), `Archived` (`archived`)
+   - Bulk "Archive completed" cleanup action button (preserves stats & logs in SQLite)
 
 2. **Center Panel — Focus & Notes**:
    - Large monospace active session timer
    - Single active focus task enforcement
    - Dual-mode Notes Workspace: **Markdown Source** vs **Live Preview Mode**
-   - Import Obsidian vaults / Markdown folders with full relative path retention
 
 3. **Right Sidebar**:
    - **Commands**: Store and copy frequent terminal commands
@@ -112,30 +110,27 @@ DevFlow/
 │   ├── src/
 │   │   ├── app/layout/         # DashboardLayout, WorkspaceHeader
 │   │   ├── components/         # Shared UI (Button, Badge, Input, Card)
-│   │   ├── features/           # Feature modules
-│   │   │   ├── tasks/          # TaskPanel, TaskItem, TaskQuickAdd
-│   │   │   ├── tracking/       # FocusPanel, TimerDisplay
-│   │   │   ├── notes/          # NotesWorkspace, NotesSidebar, NoteEditor
-│   │   │   ├── commands/       # CommandsPanel, CommandItem
-│   │   │   ├── resources/      # ResourcesPanel, ResourceItem
-│   │   │   └── logs/           # LogsPanel, LogItem
+│   │   ├── features/           # Feature modules (tasks, tracking, notes, commands, resources, logs)
 │   │   ├── pages/dashboard/    # DashboardPage (Orchestrator & Onboarding)
-│   │   ├── services/           # fileSystemService (FS Access API & IndexedDB)
-│   │   └── store/              # useWorkspaceStore.js (Zustand Single Source of Truth)
+│   │   ├── services/           # apiClient.js & fileSystemService.js
+│   │   └── store/              # useWorkspaceStore.js (Zustand State)
 │   └── package.json
 │
-├── backend/                    # Optional Node.js/Express REST API
+├── backend/                    # Dedicated Node.js/Express REST Service
 │   ├── src/
-│   │   ├── config/             # db.js (Mongoose connection)
-│   │   ├── controllers/        # task, note, and timeEntry controllers
+│   │   ├── config/             # env.js, sqlite.js (Schema & WAL mode)
+│   │   ├── controllers/        # sqliteController.js
 │   │   ├── middleware/         # errorHandler.js
-│   │   ├── models/             # task.model.js, note.model.js, timeEntry.model.js
-│   │   ├── routes/             # RESTful API route definitions
-│   │   └── server.js           # Server startup script
+│   │   ├── routes/             # api.js & sqliteApi.js
+│   │   ├── services/           # watcherService.js (chokidar file watcher & path validation)
+│   │   └── server.js           # Server startup & graceful shutdown handlers
 │   └── package.json
+│
+├── deployment/                 # Service & Reverse Proxy setup
+│   └── Caddyfile               # Caddy reverse proxy config (devflow.local → localhost:3001)
 │
 └── docs/                       # Technical documentation
-    ├── Architecture.md         # Full frontend & persistence architecture specification
+    ├── Architecture.md         # Full service & persistence architecture specification
     └── APIContract.md          # REST API endpoints documentation
 ```
 

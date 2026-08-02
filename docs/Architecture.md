@@ -1,128 +1,74 @@
-# DevFlow Architecture Specification
+# DevFlow Production Architecture & Deployment Guide
 
-> **Version**: 1.0.0  
-> **Updated**: July 2026  
-> **Status**: Current Production Architecture
+Welcome! This document provides an educational guide to DevFlow's production architecture using **Caddy** as a high-performance web server and reverse proxy alongside an **Express 5 + SQLite** REST backend.
 
 ---
 
-## 1. Executive Overview
-
-DevFlow is a local-first single-page developer workspace application. It provides real-time task focus, Markdown note editing, command bookmarking, resource management, activity logging, and time tracking without requiring internet connectivity or external cloud databases.
-
----
-
-## 2. Technology Stack
-
-### Frontend Architecture
-- **Framework**: React 18 + Vite
-- **State Management**: Zustand v5 with `persist` middleware
-- **Styling**: TailwindCSS v3 (Material Design 3 Dark Theme Palette)
-- **Icons**: `lucide-react`
-- **Persistence**: `localStorage` (Key: `devflow_projects`) + File System Access API (`dirHandle` stored in IndexedDB)
-
-### Optional Backend API Architecture
-- **Runtime**: Node.js + Express 5
-- **Module System**: ES Modules (`"type": "module"`)
-- **Database**: MongoDB via Mongoose 8+
-- **Security**: CORS, Environment Variable Isolation (`dotenv`)
-
----
-
-## 3. State & Data Flow Architecture
-
-DevFlow follows a single-source-of-truth state architecture implemented in [`useWorkspaceStore.js`](../frontend/src/store/useWorkspaceStore.js).
+## 1. System Architecture Overview
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Zustand Workspace Store                         │
-│                    (useWorkspaceStore.js)                              │
-└───────┬────────────────────────────────────────────────────────┬───────┘
-        │                                                        │
-        ▼                                                        ▼
-┌───────────────────────────────┐        ┌───────────────────────────────┐
-│     Browser LocalStorage      │        │   File System Access API      │
-│  (Zustand Persist Middleware) │        │ (Optional Directory Sync &    │
-│    Key: devflow_projects      │        │    IndexedDB Handle Store)    │
-└───────────────────────────────┘        └───────────────────────────────┘
-```
-
-### Core Project Schema
-```typescript
-interface Project {
-  id: number;
-  name: string;
-  lastAccessed: number;
-  linkedFolderName: string | null;
-  tasks: Task[];
-  notes: Note[];
-  commands: Command[];
-  resources: Resource[];
-  logs: LogEntry[];
-  timer: TimerState;
-}
-
-interface Task {
-  id: number;
-  title: string;
-  status: 'todo' | 'doing' | 'blocked' | 'done';
-}
-
-interface Note {
-  id: number;
-  title: string;
-  content: string;
-  path?: string; // Relative file path for Obsidian & imported markdown files
-}
-
-interface TimerState {
-  startedAt: number | null;
-  accumulated: number; // Elapsed seconds
-  activeTaskId: number | null;
-}
+                      Browser
+                         │
+                         ▼
+        http://devflow.localhost:8080
+                         │
+                         ▼
+             ┌──────────────────────┐
+             │    Caddy Web Server  │
+             │ (devflow-caddy.service)
+             └───────────┬──────────┘
+                         │
+      ┌──────────────────┴──────────────────┐
+      │                                     │
+      ▼ (Static Assets)                     ▼ (API Proxy /api/*)
+┌───────────┐                         ┌───────────┐
+│ frontend/ │                         │ Express 5 │
+│   dist/   │                         │ (Port 3001)
+└───────────┘                         └─────┬─────┘
+                                            │
+                                            ▼
+                                  ┌───────────────────┐
+                                  │   SQLite DB &     │
+                                  │ Chokidar Watcher  │
+                                  └───────────────────┘
 ```
 
 ---
 
-## 4. Key Architectural Patterns
+## 2. Why Introduce a Reverse Proxy (Caddy)?
 
-1. **Single Active Task Rule**:
-   Only one task per workspace can hold `doing` status at a time. Selecting a new task to work on automatically transitions the previous active task back to `todo`.
+In modern web development, separating concerns between **Static Web Serving** and **Application API Logic** is an industry standard:
 
-2. **Cross-Workspace Timer Persistence & Global Stats**:
-   When switching workspaces via `switchProject(id)`, running timer deltas are automatically flushed into the outgoing project's `accumulated` time, ensuring tracked session seconds are preserved across workspace context switches. Global `timeToday` and `tasksCompleted` are computed across all active projects combined.
-
-3. **Markdown Import & Obsidian Vault Sync**:
-   `scanMarkdownFilesFromDir()` and `scanMarkdownFromFiles()` recursively traverse selected local directories or Obsidian vaults, preserving nested relative paths (`docs/api.md`), filtering out hidden folders (`.git`, `.obsidian`), and importing Markdown documents into the project workspace.
-
-4. **Dual-Mode Markdown Renderer**:
-   `NoteEditor.jsx` features a built-in custom Markdown parser supporting headers (H1-H4), fenced code blocks, inline code, bold/italic formatting, links, lists, blockquotes, horizontal rules, and paragraph formatting, with an instant `Edit Markdown` ↔ `Live Preview` mode toggle.
+| Responsibility | Express Backend | Caddy Web Server |
+|---|---|---|
+| **Role** | Application REST API & Business Logic | Static Web Server & Reverse Proxy |
+| **Static Assets** | ❌ None (Keeps backend clean & fast) | ✅ High-performance static file serving (`frontend/dist`) |
+| **Compression** | ❌ None | ✅ Automatic Gzip and Zstd compression |
+| **API Forwarding**| ❌ Listens on `localhost:3001` | ✅ Reverse proxies `/api/*` requests to port 3001 |
+| **SPA Routing** | ❌ None | ✅ `try_files {path} /index.html` fallback for React Router |
 
 ---
 
-## 5. File System Access API & Local Sync
+## 3. How Requests Flow Through the System
 
-When a workspace is linked to a local folder:
-- **Project Snapshot**: Saved to `.devflow/project.json` inside the selected folder.
-- **Granular Notes**: Written as individual `.md` files in `.devflow/notes/`.
-- **Handle Persistence**: Folder handles (`FileSystemDirectoryHandle`) are stored in browser `IndexedDB` (`devflow-fs` database) to maintain directory access permission across tab reloads.
+1. **User Request**: User opens `http://devflow.localhost:8080` in their browser.
+2. **Local Domain Resolution**: Operating systems automatically resolve `*.localhost` to loopback `127.0.0.1`.
+3. **Caddy Static Handling**: Caddy receives the request on port `8080`. It matches static files in `frontend/dist/` (HTML, JS, CSS, images).
+4. **API Traffic Forwarding**: When React makes an API request (`GET /api/projects`), Caddy matches the `/api/*` route handler and forwards the request over HTTP to Express on `localhost:3001`.
+5. **Express Processing**: Express processes the JSON API call, queries SQLite, and returns JSON back to Caddy, which sends it to the browser.
+6. **SPA Client Routing**: If the user reloads a deep route like `http://devflow.localhost:8080/insights`, Caddy checks if `/insights` exists as a physical file. When it doesn't, Caddy's `try_files {path} /index.html` directive falls back to `index.html`, allowing React Router to handle client-side navigation smoothly.
 
 ---
 
-## 6. Directory Structure Overview
+## 4. Systemd Service Orchestration
 
-```
-frontend/src/
-├── app/layout/             # DashboardLayout, WorkspaceHeader
-├── components/ui/          # Badge, Button, Input, Card
-├── features/               # Self-contained feature components
-│   ├── tasks/
-│   ├── tracking/
-│   ├── notes/
-│   ├── commands/
-│   ├── resources/
-│   └── logs/
-├── pages/dashboard/        # DashboardPage orchestrator
-├── services/               # fileSystemService.js
-└── store/                  # useWorkspaceStore.js
+DevFlow manages two user-space systemd services:
+- `devflow-api.service`: Manages the Node.js Express API server (`localhost:3001`).
+- `devflow-caddy.service`: Manages the Caddy reverse proxy (`devflow.localhost:8080`).
+
+To inspect status or tail logs:
+```bash
+devflow status
+devflow logs
+devflow doctor
 ```
