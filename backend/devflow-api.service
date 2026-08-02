@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/Documents/WorkSpace-Tools/DevFlow/backend
-ExecStart=/usr/bin/node src/server.js
-Restart=on-failure
+WorkingDirectory=/home/cy3pher/Documents/WorkSpace-Tools/DevFlow/backend
+ExecStart=/usr/local/bin/node src/server.js
+Restart=always
 RestartSec=3
 Environment=NODE_ENV=production PORT=3001
 
