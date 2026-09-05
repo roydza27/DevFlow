@@ -1,8 +1,8 @@
 import 'dotenv/config';
-import app from './app.js';
+import app from './app/app.js';
 import { PORT } from './config/env.js';
-import { getDB, closeDB } from './config/sqlite.js';
-import { stopAllWatchers } from './services/watcherService.js';
+import { getDB, closeDB } from './infrastructure/database/sqlite.js';
+import { stopAllWatchers } from './infrastructure/filesystem/watcher.service.js';
 
 let server = null;
 
