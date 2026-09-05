@@ -5,13 +5,18 @@
 ### Modular-Monolith Backend Service Architecture
 - **Directory Structure**:
   ```text
-  backend/src/
-  ├── app/                     # Express application composition & routes mounting
-  ├── config/                  # Environment & watcher config
-  ├── infrastructure/          # SQLite database connection & Chokidar filesystem watcher
-  ├── modules/                 # Feature modules (analytics, commands, logs, notes, projects, resources, tasks, timer)
-  ├── shared/                  # Central errorHandler middleware & shared helpers
-  └── server.js                # Server bootstrap & graceful shutdown
+  backend/
+  ├── src/
+  │   ├── app/                     # Express application composition & routes mounting
+  │   ├── config/                  # Environment & watcher config
+  │   ├── infrastructure/          # SQLite database connection & Chokidar filesystem watcher
+  │   ├── modules/                 # Feature modules (analytics, commands, logs, notes, projects, resources, tasks, timer)
+  │   ├── shared/                  # Central errorHandler middleware & shared helpers
+  │   └── server.js                # Server bootstrap & graceful shutdown
+  └── tests/
+      ├── helpers/testDb.js        # Isolated temporary SQLite database sandbox
+      ├── unit/                    # App composition, error handling, repository unit tests
+      └── integration/             # End-to-end HTTP API integration test suites
   ```
 - **Web Server & Reverse Proxy**: Caddy (`deployment/Caddyfile`) on port 80 (`http://devflow.localhost`).
   - Serves static frontend assets (`frontend/dist`) with Gzip/Zstd compression & SPA routing.
@@ -22,21 +27,21 @@
 
 ## Current Phase
 
-- Backend modular-monolith restructuring completed and fully verified.
-- Infrastructure and reverse-proxy setup operational.
+- Automated testing suite established and integrated into `package.json`.
+- Backend modular monolith protected against regressions.
 
 ---
 
 ## Completed
 
+- **Backend Automated Testing Foundation**:
+  - Implemented testing using Node.js built-in `node:test` and `node:assert/strict` with `supertest`.
+  - Added isolated test database fixture (`tests/helpers/testDb.js`) using temporary directories and custom `DEVFLOW_DATA_DIR` so tests never touch production/dev databases.
+  - Created 27 automated tests across 11 test suites (Unit tests for App, ErrorHandler, TaskRepository; Integration tests for Stats, Projects, Tasks, Notes, Commands, Resources, Logs, Timer).
+  - Added `"test": "node --test tests/**/*.test.js"` script to `backend/package.json`.
 - **Backend Modular-Monolith Restructuring**:
-  - Eliminated legacy global folders (`controllers/`, `services/`, `routes/`, `config/sqlite.js`, `middleware/errorHandler.js`).
-  - Created isolated infrastructure layer (`infrastructure/database/sqlite.js`, `infrastructure/filesystem/watcher.service.js`).
-  - Created domain feature modules (`modules/analytics`, `modules/commands`, `modules/logs`, `modules/notes`, `modules/projects`, `modules/resources`, `modules/tasks`, `modules/timer`).
-  - Implemented clean application composition in `src/app/` (`app.js`, `routes.js`) separating Express bootstrap from `server.js`.
-  - Re-mounted user systemd service (`devflow-api.service`) and verified with 100% pass on all API endpoints.
-- **Port 80 Caddy Capability Analysis**: Audited Caddy privileged port binding permission and capabilities.
-- **Reverse Proxy & Diagnostics**: Configured `deployment/Caddyfile` for `http://devflow.localhost` and verified via `scripts/doctor.sh`.
+  - Encapsulated modules in `backend/src/modules/` with thin controllers, services, and isolated repositories.
+  - Separated infrastructure (`infrastructure/database/sqlite.js`, `infrastructure/filesystem/watcher.service.js`).
 - **Operating Documentation**: Established `AGENTS.md` and updated `backend/README.md`.
 
 ---
@@ -49,45 +54,42 @@
 
 ## Next Steps
 
-1. Implement future domain modules or feature capabilities (e.g. recommendations, notifications, settings) within `backend/src/modules/`.
-2. Continue frontend enhancements and component optimizations.
+1. Add mock/unit tests for filesystem watcher note parsing events.
+2. Build new feature modules (recommendations, notifications, settings) adhering to test-driven and modular-monolith standards.
 
 ---
 
 ## Important Decisions
 
-- **Modular Monolith**: Organized backend by domain features (`modules/<feature>/`) with strict encapsulation and thin controllers.
-- **Physical Directory**: Kept `backend/` as root directory name to preserve seamless integration with systemd user services, scripts, and local tooling.
-- **Local-First Routing**: Production domain set to `http://devflow.localhost` running on HTTP port 80 via Caddy reverse proxy.
+- **Testing Stack**: Native Node.js test runner (`node:test`) + `supertest` for fast, lightweight ESM-compatible testing without third-party test runners.
+- **Database Isolation**: Tests execute in temporary sandbox directories (`/tmp/devflow-test-*`) to prevent accidental data corruption or pollution.
+- **Modular Monolith**: Organized backend by domain features with thin controllers and dedicated repository boundaries.
 
 ---
 
 ## Known Issues
 
-- None currently identified. All 10 diagnostic checks in `scripts/doctor.sh` and end-to-end API tests are passing.
+- No dedicated `/api/health` endpoint exists (endpoint is `/api/stats` for system metrics).
 
 ---
 
 ## Current Files / Areas Being Modified
 
-- `backend/src/infrastructure/`
-- `backend/src/modules/`
-- `backend/src/app/`
-- `backend/src/shared/`
-- `backend/src/server.js`
-- `backend/README.md`
+- `backend/package.json`
+- `backend/tests/`
+- `AGENTS.md`
 - `MEMORY.md`
 
 ---
 
 ## Tests / Verification
 
-- **Automated API Test Suite**: Verified 100% pass across stats, projects, tasks, notes, commands, resources, logs, and timer endpoints.
-- **Diagnostics**: `scripts/doctor.sh` all 10 checks PASS.
-- **Service Verification**: `devflow-api.service` active and operational.
+- **Command**: `npm test` inside `backend/`
+- **Result**: 27 passing tests across 11 test suites (0 failures).
+- **Diagnostics**: `scripts/doctor.sh` 10/10 checks PASS.
 
 ---
 
 ## Notes for Next Session
 
-- New features should follow `AGENTS.md` rules: add modules under `backend/src/modules/<name>/` with repository, service, controller, and routes.
+- Run `npm test` before and after modifying backend modules.
