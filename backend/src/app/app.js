@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import router from './routes/api.js';
-import { errorHandler } from './middleware/errorHandler.js';
+import routes from './routes.js';
+import { errorHandler } from '../shared/middleware/errorHandler.js';
 
 const app = express();
 
@@ -11,7 +11,7 @@ app.use(express.json());   // Parse JSON request bodies
 
 // ── REST API Routes ───────────────────────────────────────────────────────────
 // Express backend acts purely as a JSON REST API service (handled via Caddy)
-app.use('/api', router);
+app.use('/api', routes);
 
 // ── 404 Fallback for Non-API Routes ───────────────────────────────────────────
 app.use((req, res) => {

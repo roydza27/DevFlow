@@ -1,57 +1,93 @@
-# MEMORY.md — DevFlow Project Memory
+# DevFlow Memory
 
-_Last updated: 2026-08-02 (session 45 — Port 80 Caddy Capability Analysis & Systemd Architecture complete)_
+## Current Architecture
 
----
-
-## Current Goal
-
-Build **DevFlow** — a local-first developer workspace that helps developers instantly resume work, focus on one task, and track real progress from a single screen.
-
-Principle: **Resume → Focus → Execute → Log → Continue → Track**
-
-Current session: Audited Caddy's privileged port binding permission issue (`listen tcp :80: bind: permission denied`). Demonstrated root cause analysis of unprivileged user Linux capabilities (`ip_unprivileged_port_start=1024`). Compared Options A (`setcap`), B (`systemd` root service), and C (`sysctl`). Configured `deployment/Caddyfile` for `http://devflow.localhost` on HTTP port 80 and updated `scripts/doctor.sh` and `devflow open` CLI tool.
-
----
-
-## Current Architecture Understanding
-
-### Reverse-Proxied Production Service Architecture
-
-```
-Boot → systemd
-        ├── devflow-api.service (Express 5 REST API on localhost:3001) → SQLite WAL DB
-        └── devflow-caddy.service (Caddy Web Server & Reverse Proxy listening on HTTP Port 80)
-                ├── Serves static UI (frontend/dist) + Gzip/Zstd + SPA routing
-                ├── Forward /api/* requests to localhost:3001
-                └── Public Production Domain: http://devflow.localhost
-```
+### Modular-Monolith Backend Service Architecture
+- **Directory Structure**:
+  ```text
+  backend/src/
+  ├── app/                     # Express application composition & routes mounting
+  ├── config/                  # Environment & watcher config
+  ├── infrastructure/          # SQLite database connection & Chokidar filesystem watcher
+  ├── modules/                 # Feature modules (analytics, commands, logs, notes, projects, resources, tasks, timer)
+  ├── shared/                  # Central errorHandler middleware & shared helpers
+  └── server.js                # Server bootstrap & graceful shutdown
+  ```
+- **Web Server & Reverse Proxy**: Caddy (`deployment/Caddyfile`) on port 80 (`http://devflow.localhost`).
+  - Serves static frontend assets (`frontend/dist`) with Gzip/Zstd compression & SPA routing.
+  - Reverse proxies `/api/*` requests to Express API on `localhost:3001`.
+- **Database**: SQLite WAL database at `~/.config/devflow/devflow.db`.
 
 ---
 
-## Important Files
+## Current Phase
 
-```
-deployment/Caddyfile                          ← Production Caddy configuration on port 80 (http://devflow.localhost)
-deployment/devflow-caddy.service              ← Systemd user service unit file for Caddy
-backend/src/app.js                             ← Pure Express 5 REST API server
-devflow                                        ← Main CLI binary installed at ~/.local/bin/devflow
-scripts/doctor.sh                              ← Diagnostic suite
-docs/Architecture.md                           ← Educational deployment & architecture documentation
-```
+- Backend modular-monolith restructuring completed and fully verified.
+- Infrastructure and reverse-proxy setup operational.
 
 ---
 
-## Progress
+## Completed
 
-### Completed
-- **Root Cause Analysis**: Identified Linux kernel privileged port protection (ports 1–1023 restricted to root/CAP_NET_BIND_SERVICE).
-- **Architecture Analysis**: Compared `setcap` capability granting vs system-level systemd service configuration.
-- **Port 80 Caddy Configuration**: Configured `deployment/Caddyfile` for `http://devflow.localhost` on default HTTP port 80.
-- **Updated CLI Tools**: `devflow open` updated to open `http://devflow.localhost` without explicit port numbers.
+- **Backend Modular-Monolith Restructuring**:
+  - Eliminated legacy global folders (`controllers/`, `services/`, `routes/`, `config/sqlite.js`, `middleware/errorHandler.js`).
+  - Created isolated infrastructure layer (`infrastructure/database/sqlite.js`, `infrastructure/filesystem/watcher.service.js`).
+  - Created domain feature modules (`modules/analytics`, `modules/commands`, `modules/logs`, `modules/notes`, `modules/projects`, `modules/resources`, `modules/tasks`, `modules/timer`).
+  - Implemented clean application composition in `src/app/` (`app.js`, `routes.js`) separating Express bootstrap from `server.js`.
+  - Re-mounted user systemd service (`devflow-api.service`) and verified with 100% pass on all API endpoints.
+- **Port 80 Caddy Capability Analysis**: Audited Caddy privileged port binding permission and capabilities.
+- **Reverse Proxy & Diagnostics**: Configured `deployment/Caddyfile` for `http://devflow.localhost` and verified via `scripts/doctor.sh`.
+- **Operating Documentation**: Established `AGENTS.md` and updated `backend/README.md`.
 
 ---
 
-## Next Recommended Task
+## In Progress
 
-1. Run `sudo setcap cap_net_bind_service=+ep $(which caddy)` to allow Caddy binary to bind to port 80.
+- Ready for subsequent product features built on top of the modular architecture.
+
+---
+
+## Next Steps
+
+1. Implement future domain modules or feature capabilities (e.g. recommendations, notifications, settings) within `backend/src/modules/`.
+2. Continue frontend enhancements and component optimizations.
+
+---
+
+## Important Decisions
+
+- **Modular Monolith**: Organized backend by domain features (`modules/<feature>/`) with strict encapsulation and thin controllers.
+- **Physical Directory**: Kept `backend/` as root directory name to preserve seamless integration with systemd user services, scripts, and local tooling.
+- **Local-First Routing**: Production domain set to `http://devflow.localhost` running on HTTP port 80 via Caddy reverse proxy.
+
+---
+
+## Known Issues
+
+- None currently identified. All 10 diagnostic checks in `scripts/doctor.sh` and end-to-end API tests are passing.
+
+---
+
+## Current Files / Areas Being Modified
+
+- `backend/src/infrastructure/`
+- `backend/src/modules/`
+- `backend/src/app/`
+- `backend/src/shared/`
+- `backend/src/server.js`
+- `backend/README.md`
+- `MEMORY.md`
+
+---
+
+## Tests / Verification
+
+- **Automated API Test Suite**: Verified 100% pass across stats, projects, tasks, notes, commands, resources, logs, and timer endpoints.
+- **Diagnostics**: `scripts/doctor.sh` all 10 checks PASS.
+- **Service Verification**: `devflow-api.service` active and operational.
+
+---
+
+## Notes for Next Session
+
+- New features should follow `AGENTS.md` rules: add modules under `backend/src/modules/<name>/` with repository, service, controller, and routes.

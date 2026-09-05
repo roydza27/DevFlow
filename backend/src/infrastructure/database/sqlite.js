@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
-import { DATA_DIR, DB_PATH } from './env.js';
+import { DATA_DIR, DB_PATH } from '../../config/env.js';
 
 let db = null;
 
@@ -86,7 +86,7 @@ export function getDB() {
   try { db.exec('ALTER TABLE tasks ADD COLUMN startedAt INTEGER DEFAULT NULL;'); } catch {}
   try { db.exec('ALTER TABLE tasks ADD COLUMN isRunning INTEGER DEFAULT 0;'); } catch {}
 
-  // If table was originally created with old CHECK constraint without 'archived', recreate it preserving data
+  // Check constraint migration for archived status
   try {
     const tableInfo = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='tasks'").get();
     if (tableInfo && tableInfo.sql && !tableInfo.sql.includes("'archived'")) {
@@ -115,7 +115,6 @@ export function getDB() {
     console.error('Failed migrating tasks schema check constraint:', err.message);
   }
 
-  console.log(`SQLite DB initialized at: ${DB_PATH}`);
   return db;
 }
 

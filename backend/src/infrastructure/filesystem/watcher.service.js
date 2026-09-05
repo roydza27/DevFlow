@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
-import { getDB } from '../config/sqlite.js';
-import { WATCHER_CONFIG } from '../config/env.js';
+import { getDB } from '../database/sqlite.js';
+import { WATCHER_CONFIG } from '../../config/env.js';
 
 const activeWatchers = new Map();
 
