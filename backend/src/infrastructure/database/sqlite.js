@@ -1,17 +1,20 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
-import { DATA_DIR, DB_PATH } from '../../config/env.js';
+import { getDataDir, getDbPath } from '../../config/env.js';
 
 let db = null;
 
 export function getDB() {
   if (db) return db;
 
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  const dataDir = getDataDir();
+  const dbPath = getDbPath();
+
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
   }
 
-  db = new Database(DB_PATH);
+  db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
 
   // Initialize Schema
