@@ -6,6 +6,7 @@ import { resourceRepository } from '../resources/index.js';
 import { logRepository } from '../logs/index.js';
 import { timerRepository } from '../timer/index.js';
 import { validateFolderPath, initWorkspaceFolder, watchWorkspaceFolder } from '../../infrastructure/filesystem/watcher.service.js';
+import { heraClient } from '../../infrastructure/hera/index.js';
 
 export function getAllProjects() {
   const projects = projectRepo.getAllProjectRows();
@@ -25,7 +26,14 @@ export function getAllProjects() {
       commands,
       resources,
       logs,
-      timer: timerRow || { startedAt: null, accumulated: 0, activeTaskId: null }
+      timer: timerRow || {
+        startedAt: null,
+        accumulated: 0,
+        activeTaskId: null
+      },
+      hera: p.linkedFolderName
+        ? heraClient.getProjectStateByRootPath(p.linkedFolderName)
+        : null,
     };
   });
 }
