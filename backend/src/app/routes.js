@@ -7,6 +7,7 @@ import { commandRoutes } from '../modules/commands/index.js';
 import { resourceRoutes } from '../modules/resources/index.js';
 import { logRoutes } from '../modules/logs/index.js';
 import { timerRoutes } from '../modules/timer/index.js';
+import heraRoutes from './heraRoutes.js';
 
 const router = Router();
 
@@ -19,5 +20,6 @@ router.use('/', commandRoutes);
 router.use('/', resourceRoutes);
 router.use('/', logRoutes);
 router.use('/', timerRoutes);
+router.use('/hera', heraRoutes);
 
 export default router;

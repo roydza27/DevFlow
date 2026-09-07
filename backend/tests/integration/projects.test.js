@@ -2,6 +2,7 @@ import test, { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { setupTestDb, cleanupTestDb } from '../helpers/testDb.js';
+import { heraClient } from '../../src/infrastructure/hera/index.js';
 
 let app;
 
@@ -42,6 +43,106 @@ describe('Projects API Integration Tests', () => {
     assert.ok(Array.isArray(project.resources));
     assert.ok(Array.isArray(project.logs));
     assert.ok(project.timer);
+  });
+
+  it('GET /api/projects - should attach Hera state for a matching project path', async () => {
+    const original = heraClient.getProjectStateByRootPath;
+
+    const fakeHeraState = {
+      schema_version: 1,
+      project: {
+        name: 'hera',
+        root_path: '/tmp/hera-project',
+      },
+    };
+
+    heraClient.getProjectStateByRootPath = (rootPath) => {
+      if (rootPath === '/tmp/hera-project') {
+        return fakeHeraState;
+      }
+
+      return null;
+    };
+
+    try {
+      await request(app)
+        .patch(`/api/projects/${testProjId}`)
+        .send({
+          linkedFolderName: '/tmp/hera-project',
+        });
+
+      const res = await request(app).get('/api/projects');
+
+      assert.equal(res.status, 200);
+
+      const project = res.body.find(p => p.id === testProjId);
+
+      assert.ok(project);
+      assert.ok(project.hera);
+      assert.deepEqual(project.hera, fakeHeraState);
+      assert.equal(
+        project.hera.project.root_path,
+        project.linkedFolderName
+      );
+    } finally {
+      heraClient.getProjectStateByRootPath = original;
+    }
+  });
+
+  it('GET /api/projects - should return null Hera state when project has no linked folder', async () => {
+    const original = heraClient.getProjectStateByRootPath;
+
+    let called = false;
+
+    heraClient.getProjectStateByRootPath = () => {
+      called = true;
+      return null;
+    };
+
+    try {
+      await request(app)
+        .patch(`/api/projects/${testProjId}`)
+        .send({
+          linkedFolderName: null,
+        });
+
+      const res = await request(app).get('/api/projects');
+
+      assert.equal(res.status, 200);
+
+      const project = res.body.find(p => p.id === testProjId);
+
+      assert.ok(project);
+      assert.equal(project.hera, null);
+      assert.equal(called, false);
+    } finally {
+      heraClient.getProjectStateByRootPath = original;
+    }
+  });
+
+  it('GET /api/projects - should return null Hera state when no matching Hera state exists', async () => {
+    const original = heraClient.getProjectStateByRootPath;
+
+    heraClient.getProjectStateByRootPath = () => null;
+
+    try {
+      await request(app)
+        .patch(`/api/projects/${testProjId}`)
+        .send({
+          linkedFolderName: '/tmp/project-without-hera',
+        });
+
+      const res = await request(app).get('/api/projects');
+
+      assert.equal(res.status, 200);
+
+      const project = res.body.find(p => p.id === testProjId);
+
+      assert.ok(project);
+      assert.equal(project.hera, null);
+    } finally {
+      heraClient.getProjectStateByRootPath = original;
+    }
   });
 
   it('PATCH /api/projects/:id - should update project metadata', async () => {
