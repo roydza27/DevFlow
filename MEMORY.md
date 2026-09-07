@@ -29,6 +29,7 @@
 
 - Automated testing suite established and integrated into `package.json`.
 - Backend modular monolith protected against regressions.
+- CI workflow backend import verification aligned with current backend app entry path.
 
 ---
 
@@ -43,6 +44,9 @@
   - Encapsulated modules in `backend/src/modules/` with thin controllers, services, and isolated repositories.
   - Separated infrastructure (`infrastructure/database/sqlite.js`, `infrastructure/filesystem/watcher.service.js`).
 - **Operating Documentation**: Established `AGENTS.md` and updated `backend/README.md`.
+- **CI Stabilization**:
+  - Investigated failing GitHub Actions `build-and-test` job (run `34139219016`, job `101797159655`).
+  - Fixed workflow backend import verification path from `backend/src/app.js` to `backend/src/app/app.js` in `.github/workflows/ci-cd.yml`.
 
 ---
 
@@ -56,6 +60,7 @@
 
 1. Add mock/unit tests for filesystem watcher note parsing events.
 2. Build new feature modules (recommendations, notifications, settings) adhering to test-driven and modular-monolith standards.
+3. Monitor CI workflow `build-and-test` on the next run to confirm green pipeline status.
 
 ---
 
@@ -75,17 +80,17 @@
 
 ## Current Files / Areas Being Modified
 
-- `backend/package.json`
-- `backend/tests/`
-- `AGENTS.md`
+- `.github/workflows/ci-cd.yml`
 - `MEMORY.md`
 
 ---
 
 ## Tests / Verification
 
-- **Command**: `npm test` inside `backend/`
-- **Result**: 27 passing tests across 11 test suites (0 failures).
+- **Commands**:
+  - `node -e "import('./src/app/app.js').then(() => console.log('Backend app/app.js imported successfully')).catch(e => { console.error(e); process.exit(1); })"` inside `backend/`
+  - `npm test` inside `backend/`
+- **Result**: backend import check passed and 63 tests passed across 11 suites (0 failures).
 - **Diagnostics**: `scripts/doctor.sh` 10/10 checks PASS.
 
 ---
@@ -93,3 +98,4 @@
 ## Notes for Next Session
 
 - Run `npm test` before and after modifying backend modules.
+- If CI fails on import checks, validate workflow paths against current backend structure (`backend/src/app/app.js`).

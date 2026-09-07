@@ -39,4 +39,4 @@ jobs:
       - name: Verify Backend Imports
         run: |
           cd backend
-          node -e "import('./src/app.js').then(() => console.log('Backend app.js imported successfully')).catch(e => { console.error(e); process.exit(1); })"
+          node -e "import('./src/app/app.js').then(() => console.log('Backend app/app.js imported successfully')).catch(e => { console.error(e); process.exit(1); })"
