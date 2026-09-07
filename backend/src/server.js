@@ -1,45 +1,72 @@
 import 'dotenv/config';
+
 import app from './app/app.js';
 import { PORT } from './config/env.js';
 import { getDB, closeDB } from './infrastructure/database/sqlite.js';
-import { stopAllWatchers } from './infrastructure/filesystem/watcher.service.js';
+import {
+  heraClient,
+} from './infrastructure/hera/index.js';
+import {
+  stopAllWatchers,
+} from './infrastructure/filesystem/watcher.service.js';
 
 let server = null;
 
-try {
-  // Initialize SQLite database
-  getDB();
+async function start() {
+  try {
+    // Initialize SQLite.
+    getDB();
 
-  server = app.listen(PORT, () => {
-    console.log(`🚀 DevFlow API Service running on http://localhost:${PORT}`);
-  });
-} catch (err) {
-  console.error('Failed to start DevFlow API Service:', err.message);
-  process.exit(1);
+    // Start Hera state observation.
+    await heraClient.start();
+
+    server = app.listen(PORT, () => {
+      console.log(
+        `🚀 DevFlow API Service running on http://localhost:${PORT}`
+      );
+    });
+  } catch (err) {
+    console.error(
+      'Failed to start DevFlow API Service:',
+      err.message
+    );
+
+    await heraClient.stop().catch(() => {});
+    closeDB();
+
+    process.exit(1);
+  }
 }
 
-// ── Graceful Shutdown ─────────────────────────────────────────────────────────
 function gracefulShutdown(signal) {
-  console.log(`\nReceived ${signal}. Shutting down DevFlow API Service gracefully...`);
+  console.log(
+    `\nReceived ${signal}. Shutting down DevFlow API Service gracefully...`
+  );
 
-  // Stop file watchers
   stopAllWatchers();
 
-  // Close HTTP server
-  if (server) {
-    server.close(() => {
-      console.log('HTTP server closed.');
+  heraClient
+    .stop()
+    .catch((error) => {
+      console.error('Failed to stop Hera:', error.message);
+    })
+    .finally(() => {
+      if (server) {
+        server.close(() => {
+          console.log('HTTP server closed.');
 
-      // Close database connection
-      closeDB();
+          closeDB();
 
-      process.exit(0);
+          process.exit(0);
+        });
+      } else {
+        closeDB();
+        process.exit(0);
+      }
     });
-  } else {
-    closeDB();
-    process.exit(0);
-  }
 }
 
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+await start();
